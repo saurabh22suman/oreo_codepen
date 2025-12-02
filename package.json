@@ -2,7 +2,7 @@
   "name": "oreo_codepen",
   "version": "1.0.0",
   "description": "The tool to park UI pages and mock designs",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",

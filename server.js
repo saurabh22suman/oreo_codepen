@@ -40,7 +40,27 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   }
 });
-const upload = multer({ storage });
+
+// File filter for security
+const fileFilter = (req, file, cb) => {
+  const allowedExtensions = ['.html', '.css', '.js', '.txt', '.json'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  
+  if (allowedExtensions.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only HTML, CSS, JS, TXT, and JSON files are allowed.'));
+  }
+};
+
+const upload = multer({ 
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 10
+  }
+});
 
 // Metadata file path
 const METADATA_FILE = path.join(__dirname, 'metadata.json');
@@ -86,8 +106,13 @@ app.post('/api/login', (req, res) => {
 
 // Logout
 app.post('/api/logout', (req, res) => {
-  req.session.destroy();
-  res.json({ success: true });
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Session destruction error:', err);
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    res.json({ success: true });
+  });
 });
 
 // Check auth status
@@ -179,6 +204,9 @@ app.post('/api/projects/:id/upload', requireAuth, upload.array('files', 10), asy
 
     res.json({ success: true, filesUploaded: req.files.length });
   } catch (error) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File too large. Maximum size is 5MB per file.' });
+    }
     res.status(500).json({ error: error.message });
   }
 });
