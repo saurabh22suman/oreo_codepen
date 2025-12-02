@@ -24,7 +24,7 @@ checkAuth();
 
 // Event Listeners
 loginForm.addEventListener('submit', handleLogin);
-logoutBtn.addEventListener('logout-btn', handleLogout);
+logoutBtn.addEventListener('click', handleLogout);
 newProjectBtn.addEventListener('click', () => showModal(newProjectModal));
 newProjectForm.addEventListener('submit', handleCreateProject);
 uploadForm.addEventListener('submit', handleUploadFiles);
@@ -65,6 +65,7 @@ function showLogin() {
 
 function showDashboard() {
   loginPage.classList.remove('active');
+  dashboardPage.classList.remove('hidden');
   dashboardPage.classList.add('active');
 }
 
