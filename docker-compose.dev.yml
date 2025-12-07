@@ -9,8 +9,6 @@
 #   - Debug-friendly settings
 #   - Exposed debug port
 
-version: "3.8"
-
 services:
   oreo-app:
     build:
@@ -25,7 +23,6 @@ services:
     volumes:
       - .:/app
       - /app/node_modules  # Prevent node_modules from being overwritten
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./projects:/app/projects
     
     ports:

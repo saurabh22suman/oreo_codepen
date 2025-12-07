@@ -10,8 +10,6 @@
 #   - Resource limits
 #   - Logging configuration
 
-version: "3.8"
-
 services:
   oreo-app:
     build:
@@ -56,7 +54,6 @@ services:
     
     # Ensure volumes are properly mounted for production
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - oreo-projects:/app/projects
       - oreo-metadata:/app/metadata
 
