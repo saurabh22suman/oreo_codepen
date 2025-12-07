@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oreo CodePen - Park UI Pages & Mock Designs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Login Page -->
+  <div id="login-page" class="page">
+    <div class="container">
+      <div class="login-box">
+        <h1>🍪 Oreo CodePen</h1>
+        <p class="subtitle">Park UI pages and mock designs</p>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <div id="login-error" class="error-message"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Page -->
+  <div id="dashboard-page" class="page hidden">
+    <nav class="navbar">
+      <div class="container">
+        <h1>🍪 Oreo CodePen</h1>
+        <button id="logout-btn" class="btn btn-secondary">Logout</button>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="dashboard-header">
+        <h2>Your Projects</h2>
+        <button id="new-project-btn" class="btn btn-primary">+ New Project</button>
+      </div>
+
+      <div id="projects-list" class="projects-grid">
+        <!-- Projects will be loaded here -->
+      </div>
+
+      <div id="empty-state" class="empty-state hidden">
+        <p>No projects yet. Create your first project to get started!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Project Modal -->
+  <div id="new-project-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Create New Project</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="new-project-form">
+        <div class="form-group">
+          <label for="project-name">Project Name</label>
+          <input type="text" id="project-name" name="name" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Upload Files Modal -->
+  <div id="upload-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Upload Files</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="upload-form">
+        <div class="form-group">
+          <label for="file-upload">Select HTML, CSS, JS files</label>
+          <input type="file" id="file-upload" multiple accept=".html,.css,.js">
+          <p class="help-text">You can select multiple files</p>
+        </div>
+        <div id="file-list" class="file-list"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
