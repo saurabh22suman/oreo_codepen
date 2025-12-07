@@ -209,11 +209,3 @@ The application was simplified from Docker container-based hosting to direct sta
 - Simple file paths
 - No Docker needed for projects
 
-## Future Enhancements
-
-- [ ] Live code editor
-- [ ] Project templates
-- [ ] Custom domains
-- [ ] Project analytics
-- [ ] Collaboration features
-- [ ] Version history

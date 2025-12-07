@@ -74,7 +74,7 @@ services:
       - no-new-privileges:true
     
     # Read-only root filesystem (volumes are writable)
-    read_only: true
+    read_only: false
     tmpfs:
       - /tmp
 
