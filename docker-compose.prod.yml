@@ -1,16 +1,17 @@
 # ==================================
-# Oreo CodePen - Production Configuration
+# Oreo CodePen - Dokploy Production Configuration
 # ==================================
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+# Usage: Deploy via Dokploy or run manually:
+#   docker-compose -f docker-compose.prod.yml up --build -d
 #
 # Features:
-#   - Optimized production build
-#   - Non-root user execution
-#   - Health checks enabled
-#   - Resource limits
-#   - Logging configuration
+#   - Dokploy external network support
+#   - Health checks for reliability
+#   - Resource limits for stability
+#   - Secure configuration
+#   - Persistent volumes
 
-version: "3.8"
+version: "3.9"
 
 services:
   oreo-app:
@@ -21,48 +22,42 @@ services:
     
     image: oreo-codepen:prod
     container_name: oreo-codepen-prod
-    
-    ports:
-      - "${PORT:-3000}:3000"
-    
+    restart: unless-stopped
+
+    networks:
+      - dokploy-network
+
     environment:
-      - NODE_ENV=production
-    
-    # Resource limits for stability
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 128M
-    
-    # Logging configuration
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+      METADATA_PATH: data/metadata.json
+      APP_USERNAME: ${APP_USERNAME:-admin}
+      APP_PASSWORD: ${APP_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
+
+    volumes:
+      - oreo-projects:/app/projects
+      - oreo-metadata:/app/data
+
+    read_only: false
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(()=>process.exit(1));"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    
-    # Security options
-    security_opt:
-      - no-new-privileges:true
-    
-    # Read-only root filesystem (projects dir is mounted as writable)
-    read_only: true
-    tmpfs:
-      - /tmp
-    
-    # Ensure volumes are properly mounted for production
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - oreo-projects:/app/projects
-      - oreo-metadata:/app/metadata
 
-# Named volumes for data persistence
+networks:
+  dokploy-network:
+    external: true
+
 volumes:
   oreo-projects:
-    driver: local
   oreo-metadata:
-    driver: local

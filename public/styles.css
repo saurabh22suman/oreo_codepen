@@ -42,8 +42,8 @@ body {
     radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 40%);
 }
 
-body::after {
-  content: '';
+/* Oreo Mascot */
+.oreo-mascot {
   position: fixed;
   bottom: -150px;
   left: -150px;
@@ -53,11 +53,86 @@ body::after {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 1;
-  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
   z-index: 9999;
-  pointer-events: none;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
   animation: float 10s ease-in-out infinite;
+  cursor: pointer;
+  transition: filter 0.3s ease;
+}
+
+.oreo-mascot:hover {
+  filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.8)) drop-shadow(0 0 60px rgba(236, 72, 153, 0.5)) drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
+  animation: bounce 0.5s ease infinite;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1.03);
+  }
+
+  50% {
+    transform: translateY(-12px) scale(1.03);
+  }
+}
+
+/* Oreo Tooltip */
+.oreo-tooltip {
+  position: absolute;
+  bottom: 420px;
+  left: 280px;
+  width: 280px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(99, 102, 241, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
+
+.oreo-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 30px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-right: 1px solid rgba(99, 102, 241, 0.3);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+  transform: rotate(45deg);
+}
+
+.oreo-mascot:hover .oreo-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.oreo-tooltip h4 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.oreo-tooltip p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.oreo-tooltip strong {
+  color: var(--secondary);
 }
 
 /* Typography */
@@ -787,14 +862,80 @@ h3 {
   border-bottom: 1px solid var(--glass-border);
 }
 
-/* Edit Button */
-.btn-edit {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
+/* Card Actions Container */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--glass-border);
 }
 
-.btn-edit:hover {
+/* Action Button Base - Icon Only */
+.btn-action {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-action svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+}
+
+.btn-action:active {
+  transform: scale(0.95);
+}
+
+/* Edit Button - Purple */
+.btn-action.btn-edit {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.btn-action.btn-edit:hover {
   background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Files Button - Amber */
+.btn-action.btn-files {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.btn-action.btn-files:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Delete Button - Red */
+.btn-action.btn-delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-action.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 /* Textarea */
@@ -922,4 +1063,672 @@ h3 {
     flex-direction: column;
     gap: 16px;
   }
+}
+
+/* ========================================
+   NEW FEATURES - Project Types & Enhancements
+   ======================================== */
+
+/* Radio Button Group */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.radio-label:hover {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.radio-label input[type="radio"] {
+  display: none;
+}
+
+.radio-custom {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 2px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.radio-label input[type="radio"]:checked+.radio-custom {
+  border-color: var(--primary);
+}
+
+.radio-label input[type="radio"]:checked+.radio-custom::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.radio-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radio-text strong {
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.radio-text small {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Card Type Badge */
+.card-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.card-type-badge.hosted {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.card-type-badge.external {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* External Status Badge */
+.status-badge.external {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* External Actions Grid */
+.project-actions.external-actions {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* File Drop Zone */
+.file-drop-zone {
+  position: relative;
+  border: 2px dashed var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 40px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone.drag-over {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.file-drop-zone input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.drop-zone-content {
+  pointer-events: none;
+}
+
+.drop-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.drop-zone-content p {
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.browse-link {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* ========================================
+   FILE MANAGER - Modern Redesign
+   ======================================== */
+
+/* File Manager Modal */
+.files-modal-content {
+  max-width: 600px;
+  width: 95%;
+}
+
+.files-modal-body {
+  padding: 0 24px 24px;
+}
+
+/* Toolbar */
+.files-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 16px;
+}
+
+.files-toolbar .btn-primary {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  width: auto;
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+}
+
+.files-count {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Files List Container */
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Individual File Row */
+.file-item-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.3) 100%);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.file-item-row:hover {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.5) 100%);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateX(4px);
+}
+
+/* File Info Section */
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* File Icon Wrapper */
+.file-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  flex-shrink: 0;
+}
+
+/* File type specific colors */
+.file-icon-wrapper.html {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.file-icon-wrapper.css {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+.file-icon-wrapper.js {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.file-icon-wrapper.json {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.file-icon-wrapper.svg,
+.file-icon-wrapper.png,
+.file-icon-wrapper.jpg,
+.file-icon-wrapper.jpeg,
+.file-icon-wrapper.gif,
+.file-icon-wrapper.webp {
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+}
+
+/* File Details */
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.file-name-text {
+  color: var(--text-main);
+  font-size: 0.95rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-ext {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: 'Fira Code', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* File Meta */
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-size {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-family: 'Fira Code', monospace;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* File Actions */
+.file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-file-action {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-file-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-rename {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+.btn-rename:hover {
+  background: rgba(99, 102, 241, 0.3);
+  transform: scale(1.1);
+}
+
+.btn-delete-file {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.btn-delete-file:hover {
+  background: rgba(239, 68, 68, 0.3);
+  transform: scale(1.1);
+}
+
+/* Empty State */
+.files-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 2px dashed var(--glass-border);
+}
+
+.files-empty p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #1e293b;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  z-index: 10000;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s var(--ease-spring);
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.toast-success .toast-icon {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.toast-error .toast-icon {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.toast-warning .toast-icon {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.toast-info .toast-icon {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+}
+
+.toast-message {
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+/* Help Text */
+.help-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Form Group Enhancements */
+.form-group input[type="url"] {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.form-group input[type="url"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Character Counter */
+.char-counter {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Button Loading State */
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn.loading .loading-spinner {
+  margin-right: 8px;
+}
+
+/* Public Hash Link */
+.public-hash-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.8rem;
+  color: var(--primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.public-hash-link:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+/* File Manager Modal */
+.files-modal-content {
+  max-width: 600px;
+  width: 100%;
+}
+
+.files-modal-body {
+  padding: 0 1.5rem 1rem;
+}
+
+.files-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.files-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.files-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.file-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.file-item-row:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-icon {
+  font-size: 1.25rem;
+}
+
+.file-name-text {
+  font-weight: 500;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-right: 1rem;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-icon.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.btn-files {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--text-light);
+}
+
+.btn-files:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(99, 102, 241, 0.3) 100%);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.files-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+/* Rename Modal */
+.rename-modal-content {
+  max-width: 400px;
 }

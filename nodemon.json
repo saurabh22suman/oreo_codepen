@@ -1,0 +1,17 @@
+{
+    "watch": [
+        "src",
+        "server.js",
+        "public"
+    ],
+    "ext": "js,json",
+    "ignore": [
+        "metadata.json",
+        "projects/*",
+        "node_modules"
+    ],
+    "exec": "node server.js",
+    "env": {
+        "DEBUG": "router,router:*,express:*,body-parser:*,express-session,send"
+    }
+}

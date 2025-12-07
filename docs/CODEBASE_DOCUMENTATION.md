@@ -1,402 +1,211 @@
-# 🍪 Oreo CodePen - Codebase Documentation
+# Oreo CodePen - Codebase Documentation
 
-> **Last Updated:** December 7, 2025  
-> **Version:** 1.0.0  
-> **License:** ISC
+## Overview
 
----
+**Oreo CodePen** is a personal UI showcase engine for hosting static HTML/CSS/JS pages. It allows you to parking UI mockups, demo pages, or any static web content with unique public URLs.
 
-## 📋 Table of Contents
+## Key Features
 
-1. [Overview](#overview)
-2. [Technology Stack](#technology-stack)
-3. [Architecture](#architecture)
-4. [Project Structure](#project-structure)
-5. [Backend API Reference](#backend-api-reference)
-6. [Frontend Architecture](#frontend-architecture)
-7. [Authentication Flow](#authentication-flow)
-8. [Docker Integration](#docker-integration)
-9. [Configuration](#configuration)
-10. [Development Guide](#development-guide)
-11. [Security Considerations](#security-considerations)
+- **Simple Authentication** - Protected admin dashboard
+- **Project Management** - Create, edit, delete projects
+- **File Upload** - Drag & drop HTML/CSS/JS files
+- **Static File Hosting** - Files served directly via Express
+- **Unique URLs** - Each project gets a unique `/p/:hash` URL
+- **Two Project Types**:
+  - **Hosted**: Upload static files, served directly
+  - **External**: Redirect to external URL
 
----
+## Technology Stack
 
-## 📖 Overview
+| Layer | Technology |
+|-------|------------|
+| Backend | Node.js, Express 5 |
+| Frontend | Vanilla HTML/CSS/JS |
+| Session | express-session |
+| File Upload | multer |
+| Data Storage | JSON file (metadata.json) |
 
-**Oreo CodePen** is a lightweight web application designed to park UI pages and mock designs. It allows users to create projects, upload HTML/CSS/JS files, and deploy them as individual Docker containers with unique URLs.
-
-### Key Features
-
-| Feature | Description |
-|---------|-------------|
-| **Simple Authentication** | Environment variable-based login using session management |
-| **Project Management** | Full CRUD operations for projects |
-| **File Upload** | Support for HTML, CSS, JavaScript, TXT, and JSON files |
-| **Docker Integration** | Each project runs in its own isolated Nginx Alpine container |
-| **Unique URLs** | Each project gets a hash-based identifier and dynamic port assignment |
-| **Container Control** | Start, stop, and remove Docker containers directly from the UI |
-| **Dashboard UI** | Clean and intuitive interface for managing all projects |
-
----
-
-## 🛠 Technology Stack
-
-### Backend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Node.js** | v14+ | Runtime environment |
-| **Express** | ^5.2.1 | Web framework |
-| **express-session** | ^1.18.2 | Session management |
-| **body-parser** | ^2.2.1 | Request body parsing |
-| **multer** | ^2.0.2 | File upload handling |
-| **dockerode** | ^4.0.9 | Docker API integration |
-| **dotenv** | ^17.2.3 | Environment variable management |
-
-### Frontend
-| Technology | Purpose |
-|------------|---------|
-| **HTML5** | Page structure |
-| **CSS3** | Styling with modern features |
-| **Vanilla JavaScript** | Interactive functionality (no framework) |
-
-### Infrastructure
-| Technology | Purpose |
-|------------|---------|
-| **Docker** | Container runtime |
-| **Nginx Alpine** | Web server for serving project files |
-
----
-
-## 🏗 Architecture
+## Architecture
 
 ```
-┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
-│    Browser      │◄────►│   Express.js     │◄────►│    Docker       │
-│   (Frontend)    │      │    Server        │      │    Engine       │
-└─────────────────┘      └──────────────────┘      └─────────────────┘
-                                   │                        │
-                                   ▼                        ▼
-                         ┌──────────────────┐      ┌─────────────────┐
-                         │  metadata.json   │      │ Nginx Containers│
-                         │  (Project Data)  │      │ (Per Project)   │
-                         └──────────────────┘      └─────────────────┘
-                                   │
-                                   ▼
-                         ┌──────────────────┐
-                         │  /projects/      │
-                         │  (File Storage)  │
-                         └──────────────────┘
+┌─────────────────────────────────────────────────────┐
+│                    Browser                          │
+├─────────────────────────────────────────────────────┤
+│                 Express Server (:3000)              │
+│  ┌─────────────┬─────────────┬─────────────┐       │
+│  │   /api/*    │   /p/:hash  │   Static    │       │
+│  │   Routes    │   Projects  │   Files     │       │
+│  └─────────────┴─────────────┴─────────────┘       │
+├─────────────────────────────────────────────────────┤
+│                  File System                        │
+│  ┌─────────────┬─────────────────────────────┐     │
+│  │ metadata.json │      projects/            │     │
+│  │ (project db) │  └── {projectId}/         │     │
+│  │              │       ├── index.html       │     │
+│  │              │       ├── style.css        │     │
+│  │              │       └── script.js        │     │
+│  └─────────────┴─────────────────────────────┘     │
+└─────────────────────────────────────────────────────┘
 ```
 
-### Data Flow
-
-1. **User Authentication**: Browser → Express (Session-based auth)
-2. **Project Operations**: Browser → Express → File System + metadata.json
-3. **Container Management**: Express → Docker Engine via dockerode
-4. **File Serving**: Browser → Nginx Container (individual project URLs)
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 oreo_codepen/
-├── 📄 server.js               # Main Express.js backend server (381 lines)
-├── 📄 package.json            # Dependencies and scripts
-├── 📄 .env.example            # Environment configuration template
-├── 📄 .gitignore              # Git ignore rules
-├── 📄 README.md               # Project documentation
-├── 📄 metadata.json           # Project metadata (auto-created)
-│
-├── 📁 public/                 # Frontend static files
-│   ├── 📄 index.html          # Main HTML file (102 lines)
-│   ├── 📄 styles.css          # Styling (5.8KB)
-│   └── 📄 app.js              # Frontend JavaScript (325 lines)
-│
-├── 📁 projects/               # Project directories (auto-created)
-│   └── 📁 {project-hash}/     # Individual project files
-│       ├── 📄 index.html
-│       ├── 📄 style.css
-│       └── 📄 script.js
-│
-└── 📁 docs/                   # Documentation
-    └── 📄 CODEBASE_DOCUMENTATION.md
+├── src/
+│   ├── config/          # Configuration
+│   │   └── index.js     # Centralized config
+│   ├── controllers/     # Route handlers
+│   │   ├── authController.js
+│   │   ├── projectController.js
+│   │   └── publicController.js
+│   ├── middleware/      # Express middleware
+│   │   ├── authMiddleware.js
+│   │   ├── errorHandler.js
+│   │   └── rateLimiter.js
+│   ├── routes/          # API routes
+│   │   ├── authRoutes.js
+│   │   ├── projectRoutes.js
+│   │   └── publicRoutes.js
+│   ├── services/        # Business logic
+│   │   ├── authService.js
+│   │   ├── metadataService.js
+│   │   └── projectService.js
+│   ├── utils/           # Utilities
+│   │   ├── hashGenerator.js
+│   │   ├── responseHelper.js
+│   │   └── validator.js
+│   └── app.js           # Express app setup
+├── public/              # Frontend files
+│   ├── index.html       # Main HTML
+│   ├── app.js           # Frontend JS
+│   └── styles.css       # Styling
+├── projects/            # Hosted project files
+├── server.js            # Entry point
+├── metadata.json        # Project database
+├── Dockerfile           # Docker config
+├── docker-compose.yml   # Docker compose
+└── package.json
 ```
 
----
+## API Reference
 
-## 🔌 Backend API Reference
+### Authentication
 
-### Authentication Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/login` | Login with credentials |
+| POST | `/api/logout` | Logout and clear session |
+| GET | `/api/auth/check` | Check authentication status |
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/api/login` | Authenticate user | ❌ |
-| `POST` | `/api/logout` | End user session | ❌ |
-| `GET` | `/api/auth/check` | Check authentication status | ❌ |
+### Projects (Admin)
 
-#### Login Request
-```json
-POST /api/login
-{
-  "username": "string",
-  "password": "string"
-}
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/projects` | List all projects |
+| GET | `/api/projects/:id` | Get single project |
+| POST | `/api/projects` | Create new project |
+| PUT | `/api/projects/:id` | Update project |
+| DELETE | `/api/projects/:id` | Delete project |
+| POST | `/api/projects/:id/upload` | Upload files |
+| GET | `/api/projects/:id/files` | Get project files |
 
-### Project Management Endpoints
+### Public
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `GET` | `/api/projects` | List all projects | ✅ |
-| `POST` | `/api/projects` | Create new project | ✅ |
-| `DELETE` | `/api/projects/:id` | Delete a project | ✅ |
-| `POST` | `/api/projects/:id/upload` | Upload files | ✅ |
-| `POST` | `/api/projects/:id/start` | Start container | ✅ |
-| `POST` | `/api/projects/:id/stop` | Stop container | ✅ |
-| `GET` | `/api/projects/:id/files` | Get project files | ✅ |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/public/projects` | List public projects |
+| GET | `/p/:hash` | Access hosted project |
 
-#### Create Project Request
-```json
-POST /api/projects
-{
-  "name": "string"
-}
-```
+## Project Types
 
-#### Project Response Schema
-```json
-{
-  "name": "My Project",
-  "hash": "a1b2c3d4e5f6g7h8",
-  "createdAt": "2025-12-07T10:00:00.000Z",
-  "containerStatus": "running" | "stopped",
-  "port": 32768,
-  "url": "http://localhost:32768"
-}
-```
+### Hosted Projects
+- Upload HTML/CSS/JS files
+- Served directly via Express static middleware
+- Access via `/p/:publicHash`
+- Default files created on project creation
 
----
+### External Projects
+- Store external URL reference
+- Redirects to external URL when accessed
+- No file upload needed
 
-## 🎨 Frontend Architecture
+## Configuration
 
-### Page Structure
+Environment variables (in `.env`):
 
-1. **Login Page** (`#login-page`)
-   - Simple form with username/password fields
-   - Error message display
-
-2. **Dashboard Page** (`#dashboard-page`)
-   - Navigation bar with logout
-   - Project grid view
-   - Empty state display
-
-3. **Modals**
-   - **New Project Modal** (`#new-project-modal`) - Create project form
-   - **Upload Modal** (`#upload-modal`) - File upload interface
-
-### Key JavaScript Functions
-
-| Function | Purpose |
-|----------|---------|
-| `checkAuth()` | Verify session on page load |
-| `handleLogin(e)` | Process login form submission |
-| `handleLogout()` | End session and redirect |
-| `loadProjects()` | Fetch and render project list |
-| `createProjectCard(id, project)` | Generate project card HTML |
-| `handleCreateProject(e)` | Submit new project creation |
-| `handleUploadFiles(e)` | Handle file upload process |
-| `startProject(id)` | Start Docker container |
-| `stopProject(id)` | Stop Docker container |
-| `deleteProject(id, name)` | Remove project and container |
-
----
-
-## 🔐 Authentication Flow
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│    User     │     │   Express   │     │   Session   │
-│   Browser   │     │   Server    │     │   Store     │
-└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
-       │                   │                   │
-       │  POST /api/login  │                   │
-       │──────────────────►│                   │
-       │                   │                   │
-       │                   │  Verify Creds     │
-       │                   │  (env vars)       │
-       │                   │                   │
-       │                   │  Create Session   │
-       │                   │──────────────────►│
-       │                   │                   │
-       │  Set-Cookie       │                   │
-       │◄──────────────────│                   │
-       │                   │                   │
-       │  API Request      │                   │
-       │  + Cookie         │                   │
-       │──────────────────►│                   │
-       │                   │  Check Session    │
-       │                   │──────────────────►│
-       │                   │                   │
-       │  Protected Data   │                   │
-       │◄──────────────────│                   │
-       │                   │                   │
-```
-
-### Session Configuration
-- **Cookie Duration:** 24 hours
-- **Secure:** false (development mode)
-- **Secret:** Configurable via `SESSION_SECRET` env variable
-
----
-
-## 🐳 Docker Integration
-
-### Container Configuration
-
-Each project is deployed as an independent Nginx Alpine container with the following configuration:
-
-```javascript
-{
-  Image: 'nginx:alpine',
-  name: `oreo-project-${projectId}`,
-  HostConfig: {
-    Binds: [`${projectPath}:/usr/share/nginx/html:ro`],
-    PortBindings: {
-      '80/tcp': [{ HostPort: '0' }]  // Dynamic port
-    },
-    RestartPolicy: {
-      Name: 'unless-stopped'
-    }
-  }
-}
-```
-
-### Container Lifecycle
-
-| Action | Description |
-|--------|-------------|
-| **Create** | Container created on first "Start" action |
-| **Start** | Reuses existing container if available |
-| **Stop** | Gracefully stops the container |
-| **Delete** | Stops and removes container + project files |
-
-### Container Naming Convention
-```
-oreo-project-{16-character-hex-hash}
-```
-
----
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `APP_USERNAME` | `admin` | Login username |
-| `APP_PASSWORD` | `admin123` | Login password |
-| `PORT` | `3000` | Server port |
-| `SESSION_SECRET` | `default-secret` | Session encryption key |
-
-### Setup Instructions
-
-```bash
-# 1. Create .env file
-cp .env.example .env
-
-# 2. Edit configuration
-APP_USERNAME=your_username
-APP_PASSWORD=your_strong_password
+```env
+# Server
 PORT=3000
-SESSION_SECRET=your-random-secret-key
+NODE_ENV=development
+
+# Auth
+APP_USERNAME=admin
+APP_PASSWORD=your-secure-password
+SESSION_SECRET=your-very-long-secret-key-here
+
+# Base URL
+APP_BASE_URL=http://localhost:3000
 ```
 
----
+## Development
 
-## 💻 Development Guide
-
-### Quick Start
+### Local Development
 
 ```bash
 # Install dependencies
 npm install
 
-# Start the server
+# Start development server
+npm run dev
+
+# Start production server
 npm start
-
-# For development with auto-restart
-npm install -g nodemon
-nodemon server.js
 ```
 
-### File Upload Constraints
+### Docker Development
 
-| Setting | Value |
-|---------|-------|
-| **Allowed Extensions** | `.html`, `.css`, `.js`, `.txt`, `.json` |
-| **Max File Size** | 5MB per file |
-| **Max Files** | 10 files per upload |
+```bash
+# Start with Docker Compose
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 
-### Adding New File Types
+# View logs
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
 
-Edit the `fileFilter` function in `server.js`:
-```javascript
-const allowedExtensions = ['.html', '.css', '.js', '.txt', '.json', '.svg'];
+# Rebuild
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
 ```
 
----
+## Security Features
 
-## 🔒 Security Considerations
+1. **Rate Limiting** - Login attempts limited to prevent brute force
+2. **Session Security** - HTTP-only cookies, secure in production
+3. **Input Validation** - All inputs sanitized
+4. **Path Traversal Prevention** - File paths validated
+5. **XSS Prevention** - HTML escaped in frontend
 
-### Current Security Features
+## How It Works
 
-- ✅ Session-based authentication
-- ✅ File type validation
-- ✅ File size limits
-- ✅ Isolated Docker containers
-- ✅ Read-only file mounts
-- ✅ Environment variable credentials
-- ✅ .env excluded from git
+1. **Create Project**: Admin creates a new project (hosted or external)
+2. **Upload Files**: For hosted projects, upload HTML/CSS/JS files
+3. **Access Project**: Visit `/p/:publicHash` to view the project
+4. **Instant Live**: No startup delay - files served directly!
 
-### Production Recommendations
+## Migration from Docker-based Hosting
 
-| Recommendation | Priority |
-|----------------|----------|
-| Enable HTTPS | 🔴 Critical |
-| Use strong SESSION_SECRET | 🔴 Critical |
-| Set `cookie: { secure: true }` | 🔴 Critical |
-| Add rate limiting | 🟡 High |
-| Implement CSRF protection | 🟡 High |
-| Add input sanitization | 🟡 High |
-| Use database for metadata | 🟢 Medium |
-| Add user management system | 🟢 Medium |
+The application was simplified from Docker container-based hosting to direct static file serving:
 
----
+### Before (Docker)
+- Each project = Nginx container
+- Start/Stop buttons needed
+- Container startup delay
+- Complex volume mounting
+- Docker dependency
 
-## 📊 Key Metrics
+### After (Direct Serving)
+- Each project = Folder with files
+- Always live (no start/stop)
+- Instant access
+- Simple file paths
+- No Docker needed for projects
 
-| Metric | Value |
-|--------|-------|
-| **Total Backend LOC** | ~381 lines |
-| **Total Frontend JS LOC** | ~325 lines |
-| **Dependencies** | 6 packages |
-| **API Endpoints** | 10 routes |
-
----
-
-## 🚀 Future Enhancements
-
-1. **Multi-user support** with database-backed authentication
-2. **Real-time collaboration** features
-3. **Version control** for project files
-4. **Custom domains** for deployed projects
-5. **SSL/TLS** support for containers
-6. **Template marketplace** for quick project creation
-7. **Code editor** integration within the dashboard
-8. **Build tools** integration (Vite, webpack, etc.)
-
----
-
-*Documentation generated by Code Analysis | Last reviewed: December 2025*
