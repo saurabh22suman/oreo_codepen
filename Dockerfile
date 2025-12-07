@@ -57,7 +57,7 @@ COPY --from=production-build /app/node_modules ./node_modules
 COPY --chown=oreo:oreo . .
 
 # Create necessary directories with proper permissions
-RUN mkdir -p projects && chown -R oreo:oreo projects
+RUN mkdir -p projects data && chown -R oreo:oreo projects data
 
 # Switch to non-root user
 USER oreo

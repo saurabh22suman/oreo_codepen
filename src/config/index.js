@@ -29,7 +29,7 @@ const config = {
     // Paths
     paths: {
         projects: 'projects',
-        metadata: 'metadata.json',
+        metadata: process.env.METADATA_PATH || 'metadata.json',
         public: 'public',
     },
 

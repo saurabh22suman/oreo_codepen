@@ -31,6 +31,9 @@ services:
       NODE_ENV: production
       PORT: ${PORT:-3000}
       
+      # Data paths (use persistent volume)
+      METADATA_PATH: /app/data/metadata.json
+      
       # Authentication (set in Dokploy env vars)
       APP_USERNAME: ${APP_USERNAME:-admin}
       APP_PASSWORD: ${APP_PASSWORD}
@@ -39,7 +42,7 @@ services:
     # Persistent volumes for data
     volumes:
       - oreo-projects:/app/projects
-      - oreo-metadata:/app/metadata.json
+      - oreo-data:/app/data
     
     # Resource limits for stability
     deploy:
@@ -83,4 +86,5 @@ networks:
 # Named volumes for data persistence
 volumes:
   oreo-projects:
-  oreo-metadata:
+  oreo-data:
+
