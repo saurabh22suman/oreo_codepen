@@ -247,10 +247,6 @@ function createPublicProjectCard(id, project) {
   card.innerHTML = `
     <div class="card-header">
       <h3>${typeIcon} ${escapeHtml(project.name)}</h3>
-      <span class="status-badge ${statusClass}">
-        <span class="status-dot"></span>
-        ${statusText}
-      </span>
     </div>
     <p class="card-description">${escapeHtml(project.description) || 'No description available'}</p>
     <div class="card-footer">
@@ -319,13 +315,27 @@ function createProjectCard(id, project) {
   }
 
   // Build actions based on project type
-  let actions = `<button class="btn btn-edit" onclick="openEditModal('${id}')">Edit</button>`;
+  let actions = `<button class="btn btn-action btn-edit" onclick="openEditModal('${id}')" title="Edit">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+  </button>`;
 
   if (!isExternal) {
-    actions += `<button class="btn btn-files" onclick="openFilesModal('${id}')">📁 Files</button>`;
+    actions += `<button class="btn btn-action btn-files" onclick="openFilesModal('${id}')" title="Files">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </button>`;
   }
 
-  actions += `<button class="btn btn-delete" onclick="deleteProject('${id}', '${escapeHtml(project.name)}')">Delete</button>`;
+  actions += `<button class="btn btn-action btn-delete" onclick="deleteProject('${id}', '${escapeHtml(project.name)}')" title="Delete">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+  </button>`;
 
   card.innerHTML = `
     <div class="card-type-badge ${isExternal ? 'external' : 'hosted'}">${typeIcon} ${isExternal ? 'External' : 'Hosted'}</div>
@@ -700,19 +710,32 @@ function createFileItem(file) {
   item.className = 'file-item-row';
 
   const icon = getFileIcon(file.name);
-  const modified = new Date(file.modified).toLocaleString();
+  const ext = file.name.split('.').pop().toLowerCase();
 
   item.innerHTML = `
     <div class="file-info">
-      <span class="file-icon">${icon}</span>
-      <span class="file-name-text">${escapeHtml(file.name)}</span>
+      <div class="file-icon-wrapper ${ext}">${icon}</div>
+      <div class="file-details">
+        <span class="file-name-text">${escapeHtml(file.name)}</span>
+        <span class="file-ext">.${ext.toUpperCase()}</span>
+      </div>
     </div>
     <div class="file-meta">
       <span class="file-size">${formatFileSize(file.size)}</span>
     </div>
     <div class="file-actions">
-      <button class="btn btn-sm btn-icon" onclick="openRenameModal('${escapeHtml(file.name)}')" title="Rename">✏️</button>
-      <button class="btn btn-sm btn-icon btn-danger" onclick="deleteFileConfirm('${escapeHtml(file.name)}')" title="Delete">🗑️</button>
+      <button class="btn-file-action btn-rename" onclick="openRenameModal('${escapeHtml(file.name)}')" title="Rename">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+      </button>
+      <button class="btn-file-action btn-delete-file" onclick="deleteFileConfirm('${escapeHtml(file.name)}')" title="Delete">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
     </div>
   `;
 
@@ -722,13 +745,18 @@ function createFileItem(file) {
 function getFileIcon(filename) {
   const ext = filename.split('.').pop().toLowerCase();
   switch (ext) {
-    case 'html': return '📄';
-    case 'css': return '🎨';
-    case 'js': return '⚡';
-    case 'json': return '📋';
-    case 'svg': return '🖼️';
-    case 'png': case 'jpg': case 'jpeg': case 'gif': return '🖼️';
-    default: return '📄';
+    case 'html':
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h2l2 3 2-3h2"></path></svg>`;
+    case 'css':
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h8"></path><path d="M8 17h8"></path></svg>`;
+    case 'js':
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M10 12v6"></path><path d="M14 12v4a2 2 0 0 0 2 2"></path></svg>`;
+    case 'json':
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 16s1.5-2 4-2 4 2 4 2"></path></svg>`;
+    case 'svg': case 'png': case 'jpg': case 'jpeg': case 'gif': case 'webp':
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+    default:
+      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
   }
 }
 

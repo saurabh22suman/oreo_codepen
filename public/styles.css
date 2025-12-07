@@ -42,8 +42,8 @@ body {
     radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 40%);
 }
 
-body::after {
-  content: '';
+/* Oreo Mascot */
+.oreo-mascot {
   position: fixed;
   bottom: -150px;
   left: -150px;
@@ -53,11 +53,86 @@ body::after {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 1;
-  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
   z-index: 9999;
-  pointer-events: none;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
   animation: float 10s ease-in-out infinite;
+  cursor: pointer;
+  transition: filter 0.3s ease;
+}
+
+.oreo-mascot:hover {
+  filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.8)) drop-shadow(0 0 60px rgba(236, 72, 153, 0.5)) drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
+  animation: bounce 0.5s ease infinite;
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1.03);
+  }
+
+  50% {
+    transform: translateY(-12px) scale(1.03);
+  }
+}
+
+/* Oreo Tooltip */
+.oreo-tooltip {
+  position: absolute;
+  bottom: 420px;
+  left: 280px;
+  width: 280px;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(99, 102, 241, 0.2);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
+
+.oreo-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 30px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-right: 1px solid rgba(99, 102, 241, 0.3);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+  transform: rotate(45deg);
+}
+
+.oreo-mascot:hover .oreo-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.oreo-tooltip h4 {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.oreo-tooltip p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.oreo-tooltip strong {
+  color: var(--secondary);
 }
 
 /* Typography */
@@ -787,14 +862,80 @@ h3 {
   border-bottom: 1px solid var(--glass-border);
 }
 
-/* Edit Button */
-.btn-edit {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
+/* Card Actions Container */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--glass-border);
 }
 
-.btn-edit:hover {
+/* Action Button Base - Icon Only */
+.btn-action {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-action svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+}
+
+.btn-action:active {
+  transform: scale(0.95);
+}
+
+/* Edit Button - Purple */
+.btn-action.btn-edit {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.btn-action.btn-edit:hover {
   background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Files Button - Amber */
+.btn-action.btn-files {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.btn-action.btn-files:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Delete Button - Red */
+.btn-action.btn-delete {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-action.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 /* Textarea */
@@ -1084,50 +1225,222 @@ h3 {
   text-decoration: underline;
 }
 
-/* File List Enhanced */
-.file-list {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  margin-top: 12px;
-  border: 1px solid var(--glass-border);
-  max-height: 200px;
+/* ========================================
+   FILE MANAGER - Modern Redesign
+   ======================================== */
+
+/* File Manager Modal */
+.files-modal-content {
+  max-width: 600px;
+  width: 95%;
+}
+
+.files-modal-body {
+  padding: 0 24px 24px;
+}
+
+/* Toolbar */
+.files-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 16px;
+}
+
+.files-toolbar .btn-primary {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  width: auto;
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+}
+
+.files-count {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Files List Container */
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
   overflow-y: auto;
+  padding-right: 8px;
 }
 
-.file-list:empty {
-  display: none;
-}
-
-.file-list-item {
+/* Individual File Row */
+.file-item-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--glass-border);
+  gap: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.3) 100%);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  transition: all 0.3s ease;
 }
 
-.file-list-item:last-child {
-  border-bottom: none;
+.file-item-row:hover {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.5) 100%);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateX(4px);
 }
 
-.file-icon {
-  font-size: 1.2rem;
-}
-
-.file-name {
+/* File Info Section */
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   flex: 1;
+  min-width: 0;
+}
+
+/* File Icon Wrapper */
+.file-icon-wrapper {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  flex-shrink: 0;
+}
+
+/* File type specific colors */
+.file-icon-wrapper.html {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.file-icon-wrapper.css {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+.file-icon-wrapper.js {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.file-icon-wrapper.json {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.file-icon-wrapper.svg,
+.file-icon-wrapper.png,
+.file-icon-wrapper.jpg,
+.file-icon-wrapper.jpeg,
+.file-icon-wrapper.gif,
+.file-icon-wrapper.webp {
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+}
+
+/* File Details */
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.file-name-text {
   color: var(--text-main);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.file-ext {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: 'Fira Code', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* File Meta */
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .file-size {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-family: 'Fira Code', monospace;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* File Actions */
+.file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-file-action {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-file-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-rename {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+}
+
+.btn-rename:hover {
+  background: rgba(99, 102, 241, 0.3);
+  transform: scale(1.1);
+}
+
+.btn-delete-file {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.btn-delete-file:hover {
+  background: rgba(239, 68, 68, 0.3);
+  transform: scale(1.1);
+}
+
+/* Empty State */
+.files-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 2px dashed var(--glass-border);
+}
+
+.files-empty p {
+  margin: 0;
+  font-size: 0.95rem;
 }
 
 /* Toast Notifications */
