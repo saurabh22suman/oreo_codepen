@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern System Architecture</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #030712;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent-ui: #38bdf8;
+            /* Sky Blue */
+            --accent-control: #a78bfa;
+            /* Violet */
+            --accent-data: #fbbf24;
+            /* Amber */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 40%);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            z-index: 20;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 3rem;
+            width: 95%;
+            max-width: 1800px;
+            position: relative;
+            z-index: 10;
+            height: 85vh;
+            align-items: center;
+        }
+
+        /* Section Containers */
+        .plane-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            padding: 1.5rem;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+            height: 100%;
+            justify-content: flex-start;
+        }
+
+        .plane-container:hover {
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .plane-title {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.01);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1rem;
+            line-height: 1.2;
+        }
+
+        .tech-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .tech-list li {
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            line-height: 1.4;
+        }
+
+        .tech-list li i {
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-top: 3px;
+            width: 16px;
+        }
+
+        /* Specific Colors */
+        .ui-theme .icon-box {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-ui);
+        }
+
+        .ui-theme .card-title {
+            color: var(--accent-ui);
+        }
+
+        .control-theme .icon-box {
+            background: rgba(167, 139, 250, 0.2);
+            color: var(--accent-control);
+        }
+
+        .control-theme .card-title {
+            color: var(--accent-control);
+        }
+
+        .data-theme .icon-box {
+            background: rgba(251, 191, 36, 0.2);
+            color: var(--accent-data);
+        }
+
+        .data-theme .card-title {
+            color: var(--accent-data);
+        }
+
+        /* Connectors (SVG) */
+        .connectors {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-line {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 2;
+        }
+
+        .flow-particle {
+            fill: white;
+            filter: drop-shadow(0 0 4px white);
+        }
+
+        /* Animations */
+        @keyframes flow {
+            0% {
+                offset-distance: 0%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                offset-distance: 100%;
+                opacity: 0;
+            }
+        }
+
+        .particle-1 {
+            animation: flow 3s linear infinite;
+        }
+
+        .particle-2 {
+            animation: flow 3s linear infinite 1.5s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>System Architecture</h1>
+
+    <div class="architecture-grid">
+
+        <!-- 1. Frontend UI -->
+        <div class="plane-container" id="plane-ui">
+            <div class="plane-title"><i class="fa-solid fa-desktop"></i> Frontend UI</div>
+
+            <div class="card ui-theme" id="card-frontend">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fa-brands fa-react"></i></div>
+                    <div class="card-title">Frontend (UI)</div>
+                </div>
+                <ul class="tech-list">
+                    <li><i class="fa-brands fa-react"></i> React + TypeScript</li>
+                    <li><i class="fa-solid fa-table"></i> AG Grid (Spreadsheet)</li>
+                    <li><i class="fa-solid fa-wind"></i> TailwindCSS</li>
+                    <li><i class="fa-solid fa-rocket"></i> Vite Build System</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 2. Control Plane -->
+        <div class="plane-container" id="plane-control">
+            <div class="plane-title"><i class="fa-solid fa-sliders"></i> Control Plane</div>
+
+            <div class="card control-theme" id="card-go">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fa-brands fa-golang"></i></div>
+                    <div class="card-title">Go API Service</div>
+                </div>
+                <ul class="tech-list">
+                    <li><i class="fa-solid fa-shield-halved"></i> Auth (JWT)</li>
+                    <li><i class="fa-solid fa-users"></i> Users / Projects / Roles</li>
+                    <li><i class="fa-solid fa-database"></i> Dataset CRUD</li>
+                    <li><i class="fa-solid fa-code-branch"></i> Change Requests Workflow</li>
+                    <li><i class="fa-solid fa-check-double"></i> Approvals & Permissions</li>
+                    <li><i class="fa-solid fa-route"></i> Snapshot + Audit Routing</li>
+                    <li><i class="fa-solid fa-server"></i> Proxies data ops to Python</li>
+                </ul>
+            </div>
+
+            <div class="card control-theme" id="card-sqlite">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fa-solid fa-database"></i></div>
+                    <div class="card-title">Metadata DB</div>
+                </div>
+                <ul class="tech-list">
+                    <li><i class="fa-solid fa-table"></i> datasets / dataset_meta</li>
+                    <li><i class="fa-solid fa-file-code"></i> schema_json / rules_json</li>
+                    <li><i class="fa-solid fa-code-branch"></i> change_requests + events</li>
+                    <li><i class="fa-solid fa-check-circle"></i> validation_runs</li>
+                    <li><i class="fa-solid fa-camera"></i> snapshot_records</li>
+                    <li><i class="fa-solid fa-upload"></i> uploads</li>
+                </ul>
+            </div>
+
+            <div class="card control-theme" id="card-redis">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fa-brands fa-redis"></i></div>
+                    <div class="card-title">Redis (Optional)</div>
+                </div>
+                <ul class="tech-list">
+                    <li><i class="fa-solid fa-layer-group"></i> Caching layer</li>
+                    <li><i class="fa-solid fa-memory"></i> Session cache</li>
+                    <li><i class="fa-solid fa-bolt"></i> Live edit state caching</li>
+                    <li><i class="fa-solid fa-bell"></i> Pub/Sub for notifications</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3. Data Plane -->
+        <div class="plane-container" id="plane-data">
+            <div class="plane-title"><i class="fa-solid fa-hard-drive"></i> Data Plane</div>
+
+            <div class="card data-theme" id="card-python">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fa-brands fa-python"></i></div>
+                    <div class="card-title">Python Service</div>
+                </div>
+                <ul class="tech-list">
+                    <li><i class="fa-solid fa-bolt"></i> FastAPI Backend</li>
+                    <li><i class="fa-solid fa-check-circle"></i> Great Expectations Validation</li>
+                    <li><i class="fa-solid fa-duck"></i> DuckDB Query Engine</li>
+                    <li><i class="fa-solid fa-merge"></i> Delta-RS (merge, restore, write)</li>
+                    <li><i class="fa-solid fa-file-excel"></i> Pandas / PyArrow / openpyxl</li>
+                    <li><i class="fa-solid fa-code-compare"></i> Diff Engine (Snapshots)</li>
+                    <li><i class="fa-solid fa-chart-simple"></i> Data Profiling & Schema</li>
+                </ul>
+            </div>
+
+            <div class="card data-theme" id="card-delta">
+                <div class="card-header">
+                    <div class="icon-box"><i class="fa-solid fa-server"></i></div>
+                    <div class="card-title">Delta Lake Storage</div>
+                </div>
+                <ul class="tech-list">
+                    <li><i class="fa-solid fa-folder"></i> /data/delta/projects/...</li>
+                    <li><i class="fa-solid fa-database"></i> main/ (ACID table)</li>
+                    <li><i class="fa-solid fa-code-branch"></i> staging/ (CR staging)</li>
+                    <li><i class="fa-solid fa-pen-to-square"></i> live_edit/ (session edits)</li>
+                    <li><i class="fa-solid fa-file-contract"></i> audit/ (diff, validation)</li>
+                    <li><i class="fa-solid fa-camera"></i> snapshots/ (versions)</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SVG Overlay for Connections -->
+    <svg class="connectors">
+        <defs>
+            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+
+        <path id="path-ui-go" class="connection-line" />
+        <circle class="flow-particle particle-1" r="4">
+            <animateMotion href="#path-ui-go" dur="2s" repeatCount="indefinite" />
+        </circle>
+
+        <path id="path-go-py" class="connection-line" />
+        <circle class="flow-particle particle-1" r="4">
+            <animateMotion href="#path-go-py" dur="2s" repeatCount="indefinite" />
+        </circle>
+
+        <path id="path-go-db" class="connection-line" />
+
+        <path id="path-py-delta" class="connection-line" />
+        <circle class="flow-particle particle-2" r="4">
+            <animateMotion href="#path-py-delta" dur="3s" repeatCount="indefinite" />
+        </circle>
+
+    </svg>
+
+    <!-- Container for connection labels -->
+    <div id="connection-labels"
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></div>
+
+    <script>
+        function createLabel(x, y, text, color) {
+            const label = document.createElement('div');
+            label.className = 'connection-label';
+            label.innerHTML = `<span style="background: ${color}; width: 8px; height: 8px; display: inline-block; border-radius: 50%; margin-right: 6px;"></span>${text}`;
+            Object.assign(label.style, {
+                position: 'absolute',
+                left: `${x}px`,
+                top: `${y}px`,
+                transform: 'translate(-50%, -50%)',
+                background: 'rgba(15, 23, 42, 0.9)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '4px 12px',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                color: '#cbd5e1',
+                backdropFilter: 'blur(4px)',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                whiteSpace: 'nowrap',
+                zIndex: '20'
+            });
+            return label;
+        }
+
+        function connectElements(id1, id2, pathId, color = '#fff', labelText = '') {
+            const el1 = document.getElementById(id1);
+            const el2 = document.getElementById(id2);
+            const path = document.getElementById(pathId);
+            const labelsContainer = document.getElementById('connection-labels');
+
+            if (!el1 || !el2 || !path) return;
+
+            const rect1 = el1.getBoundingClientRect();
+            const rect2 = el2.getBoundingClientRect();
+
+            // Calculate connection points
+            const x1 = rect1.right;
+            const y1 = rect1.top + rect1.height / 2;
+            const x2 = rect2.left;
+            const y2 = rect2.top + rect2.height / 2;
+
+            // Control points for bezier curve
+            const c1x = x1 + (x2 - x1) / 2;
+            const c1y = y1;
+            const c2x = x2 - (x2 - x1) / 2;
+            const c2y = y2;
+
+            let d = '';
+            if (Math.abs(x1 - x2) < 50) {
+                // Vertical connection
+                const bx1 = rect1.left + rect1.width / 2;
+                const by1 = rect1.bottom;
+                const bx2 = rect2.left + rect2.width / 2;
+                const by2 = rect2.top;
+                d = `M ${bx1} ${by1} L ${bx2} ${by2}`;
+            } else {
+                // Horizontal connection
+                d = `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
+            }
+
+            path.setAttribute('d', d);
+            path.style.stroke = color;
+
+            // Add Label
+            if (labelText) {
+                const totalLength = path.getTotalLength();
+                const midPoint = path.getPointAtLength(totalLength * 0.5);
+
+                let labelEl = document.getElementById(`label-${pathId}`);
+                if (!labelEl) {
+                    labelEl = createLabel(midPoint.x, midPoint.y, labelText, color.includes('url') ? '#fff' : color);
+                    labelEl.id = `label-${pathId}`;
+                    labelsContainer.appendChild(labelEl);
+                } else {
+                    labelEl.style.left = `${midPoint.x}px`;
+                    labelEl.style.top = `${midPoint.y}px`;
+                }
+            }
+        }
+
+        function updateConnections() {
+            const labelsContainer = document.getElementById('connection-labels');
+            labelsContainer.innerHTML = '';
+
+            connectElements('card-frontend', 'card-go', 'path-ui-go', 'url(#grad1)', 'HTTPS REST API Calls');
+            connectElements('card-go', 'card-python', 'path-go-py', 'url(#grad2)', 'Calls data operations via REST/JSON');
+            connectElements('card-go', 'card-sqlite', 'path-go-db', 'rgba(167, 139, 250, 0.5)', 'Metadata DB Access');
+            connectElements('card-python', 'card-delta', 'path-py-delta', 'rgba(251, 191, 36, 0.5)', 'Direct file system writes');
+        }
+
+        window.addEventListener('resize', updateConnections);
+        window.addEventListener('load', updateConnections);
+        setTimeout(updateConnections, 100);
+    </script>
+</body>
+
+</html>

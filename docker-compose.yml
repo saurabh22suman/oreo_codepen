@@ -22,6 +22,11 @@ services:
     env_file:
       - .env
     
+    # Additional environment variables
+    environment:
+      # Host path for Docker volume mounts (needed when app runs inside container)
+      - HOST_PROJECTS_PATH=${PWD}/projects
+    
     # Network configuration
     networks:
       - oreo-network

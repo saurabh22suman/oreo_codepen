@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oreo CodePen - Park UI Pages & Mock Designs</title>
+  <title>Oreo CodePen - Personal UI Showcase Engine</title>
   <meta name="description"
-    content="Showcase your UI masterpieces. A platform to park and deploy UI pages and mock designs in isolated Docker containers.">
+    content="Showcase your UI masterpieces. A personal engine to park and deploy UI pages and mock designs.">
   <!-- Google Fonts: Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +36,7 @@
     <div class="container">
       <div class="hero-section">
         <h2 class="hero-title">UI Showcase Gallery</h2>
-        <p class="hero-subtitle">Explore our collection of UI masterpieces deployed in isolated containers</p>
+        <p class="hero-subtitle">Explore our collection of UI masterpieces and external showcases</p>
       </div>
 
       <div id="public-projects-list" class="projects-grid public-grid">
@@ -137,13 +137,39 @@
       </div>
       <form id="new-project-form">
         <div class="form-group">
+          <label for="project-type">Project Type</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="type" value="hosted" checked>
+              <span class="radio-custom"></span>
+              <span class="radio-text">
+                <strong>Hosted Project</strong>
+                <small>Upload HTML/CSS/JS files, runs in Docker container</small>
+              </span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="type" value="external">
+              <span class="radio-custom"></span>
+              <span class="radio-text">
+                <strong>External URL</strong>
+                <small>Link to an external website or demo</small>
+              </span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
           <label for="project-name">Project Name</label>
-          <input type="text" id="project-name" name="name" required placeholder="e.g. My Awesome Landing Page">
+          <input type="text" id="project-name" name="name" required placeholder="e.g. My Awesome Landing Page"
+            maxlength="100">
         </div>
         <div class="form-group">
           <label for="project-description">Description</label>
           <textarea id="project-description" name="description" rows="3"
-            placeholder="A brief description of your project..."></textarea>
+            placeholder="A brief description of your project..." maxlength="500"></textarea>
+        </div>
+        <div class="form-group external-url-field hidden">
+          <label for="project-url">External URL</label>
+          <input type="url" id="project-url" name="externalUrl" placeholder="https://example.com">
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
@@ -162,14 +188,20 @@
       </div>
       <form id="edit-project-form">
         <input type="hidden" id="edit-project-id">
+        <input type="hidden" id="edit-project-type">
         <div class="form-group">
           <label for="edit-project-name">Project Name</label>
-          <input type="text" id="edit-project-name" name="name" required placeholder="e.g. My Awesome Landing Page">
+          <input type="text" id="edit-project-name" name="name" required placeholder="e.g. My Awesome Landing Page"
+            maxlength="100">
         </div>
         <div class="form-group">
           <label for="edit-project-description">Description</label>
           <textarea id="edit-project-description" name="description" rows="3"
-            placeholder="A brief description of your project..."></textarea>
+            placeholder="A brief description of your project..." maxlength="500"></textarea>
+        </div>
+        <div class="form-group edit-external-url-field hidden">
+          <label for="edit-project-url">External URL</label>
+          <input type="url" id="edit-project-url" name="externalUrl" placeholder="https://example.com">
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
@@ -189,13 +221,66 @@
       <form id="upload-form">
         <div class="form-group">
           <label for="file-upload">Select Files</label>
-          <input type="file" id="file-upload" multiple accept=".html,.css,.js,.json,.txt">
-          <p class="help-text">Supported: .html, .css, .js, .json, .txt</p>
+          <div class="file-drop-zone" id="file-drop-zone">
+            <input type="file" id="file-upload" multiple
+              accept=".html,.css,.js,.json,.txt,.svg,.png,.jpg,.jpeg,.gif,.ico">
+            <div class="drop-zone-content">
+              <span class="drop-icon">📁</span>
+              <p>Drag & drop files here or <span class="browse-link">browse</span></p>
+            </div>
+          </div>
+          <p class="help-text">Supported: .html, .css, .js, .json, .txt, .svg, images</p>
         </div>
         <div id="file-list" class="file-list"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
           <button type="submit" class="btn btn-primary">Upload Files</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- File Manager Modal -->
+  <div id="files-modal" class="modal hidden">
+    <div class="modal-content glass-panel files-modal-content">
+      <div class="modal-header">
+        <h3>📁 File Manager</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <div class="files-modal-body">
+        <div class="files-toolbar">
+          <button id="add-files-btn" class="btn btn-primary btn-sm">+ Add Files</button>
+          <span class="files-count">0 files</span>
+        </div>
+        <div id="files-list" class="files-list">
+          <!-- Files will be loaded here -->
+        </div>
+        <div class="files-empty hidden" id="files-empty">
+          <p>No files in this project yet.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary close-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename File Modal -->
+  <div id="rename-modal" class="modal hidden">
+    <div class="modal-content glass-panel rename-modal-content">
+      <div class="modal-header">
+        <h3>✏️ Rename File</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="rename-form">
+        <input type="hidden" id="rename-old-name">
+        <div class="form-group">
+          <label for="rename-new-name">New filename</label>
+          <input type="text" id="rename-new-name" required placeholder="index.html">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Rename</button>
         </div>
       </form>
     </div>

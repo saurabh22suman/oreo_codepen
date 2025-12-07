@@ -1,3 +1,8 @@
+/**
+ * Oreo CodePen - Frontend Application
+ * Simplified for static file hosting
+ */
+
 // State
 let currentProjectId = null;
 let isAdmin = false;
@@ -35,10 +40,8 @@ const fileList = document.getElementById('file-list');
 init();
 
 async function init() {
-  // Load public projects first
   loadPublicProjects();
 
-  // Check if user is already authenticated
   const authStatus = await checkAuth();
   if (authStatus) {
     isAdmin = true;
@@ -50,42 +53,92 @@ async function init() {
 }
 
 function setupEventListeners() {
-  // Public page
   adminLoginBtn.addEventListener('click', () => showModal(loginModal));
-
-  // Login
   loginForm.addEventListener('submit', handleLogin);
-
-  // Dashboard
   logoutBtn.addEventListener('click', handleLogout);
   viewPublicBtn.addEventListener('click', showPublicPage);
-  newProjectBtn.addEventListener('click', () => showModal(newProjectModal));
+  newProjectBtn.addEventListener('click', () => {
+    resetNewProjectForm();
+    showModal(newProjectModal);
+  });
 
-  // Forms
   newProjectForm.addEventListener('submit', handleCreateProject);
   editProjectForm.addEventListener('submit', handleEditProject);
   uploadForm.addEventListener('submit', handleUploadFiles);
   fileUpload.addEventListener('change', updateFileList);
 
-  // Close modals
+  const typeRadios = document.querySelectorAll('input[name="type"]');
+  typeRadios.forEach(radio => {
+    radio.addEventListener('change', toggleExternalUrlField);
+  });
+
   document.querySelectorAll('.close-modal, .cancel-modal').forEach(btn => {
     btn.addEventListener('click', closeModals);
   });
 
-  // Close modal on outside click
   window.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal')) {
       closeModals();
     }
   });
+
+  setupFileDropZone();
+}
+
+function setupFileDropZone() {
+  const dropZone = document.querySelector('.file-drop-zone');
+  if (!dropZone) return;
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'));
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'));
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    if (fileUpload && files.length > 0) {
+      fileUpload.files = files;
+      updateFileList();
+    }
+  });
+}
+
+function toggleExternalUrlField() {
+  const isExternal = document.querySelector('input[name="type"]:checked')?.value === 'external';
+  const urlField = document.querySelector('.external-url-field');
+  const urlInput = document.getElementById('project-url');
+
+  if (isExternal) {
+    urlField.classList.remove('hidden');
+    urlInput.required = true;
+  } else {
+    urlField.classList.add('hidden');
+    urlInput.required = false;
+  }
+}
+
+function resetNewProjectForm() {
+  newProjectForm.reset();
+  document.querySelector('input[name="type"][value="hosted"]').checked = true;
+  toggleExternalUrlField();
 }
 
 // Auth Functions
 async function checkAuth() {
   try {
     const response = await fetch('/api/auth/check');
-    const data = await response.json();
-    return data.authenticated;
+    const result = await response.json();
+    return result.data?.authenticated || false;
   } catch (error) {
     return false;
   }
@@ -105,14 +158,15 @@ async function handleLogin(e) {
       body: JSON.stringify(data)
     });
 
-    if (response.ok) {
+    const result = await response.json();
+
+    if (result.success) {
       isAdmin = true;
       closeModals();
       showDashboard();
       loadProjects();
-      loginForm.reset();
     } else {
-      loginError.textContent = 'Invalid username or password';
+      loginError.textContent = result.message || 'Invalid credentials';
     }
   } catch (error) {
     loginError.textContent = 'Login failed. Please try again.';
@@ -122,12 +176,11 @@ async function handleLogin(e) {
 async function handleLogout() {
   try {
     await fetch('/api/logout', { method: 'POST' });
-    isAdmin = false;
-    showPublicPage();
-    loadPublicProjects();
   } catch (error) {
-    console.error('Logout failed:', error);
+    console.error('Logout error:', error);
   }
+  isAdmin = false;
+  showPublicPage();
 }
 
 // Page Navigation
@@ -140,17 +193,18 @@ function showPublicPage() {
 }
 
 function showDashboard() {
-  dashboardPage.classList.add('active');
-  dashboardPage.classList.remove('hidden');
   publicPage.classList.remove('active');
   publicPage.classList.add('hidden');
+  dashboardPage.classList.add('active');
+  dashboardPage.classList.remove('hidden');
 }
 
 // Public Projects
 async function loadPublicProjects() {
   try {
     const response = await fetch('/api/public/projects');
-    const projects = await response.json();
+    const result = await response.json();
+    const projects = result.data || {};
 
     publicProjectsList.innerHTML = '';
     const projectArray = Object.entries(projects);
@@ -168,7 +222,7 @@ async function loadPublicProjects() {
       });
     }
   } catch (error) {
-    console.error('Failed to load public projects:', error);
+    console.error('Failed to load projects:', error);
   }
 }
 
@@ -176,13 +230,23 @@ function createPublicProjectCard(id, project) {
   const card = document.createElement('div');
   card.className = 'project-card public-card';
 
-  const isRunning = project.containerStatus === 'running';
-  const statusClass = isRunning ? 'running' : 'stopped';
-  const statusText = isRunning ? 'Live' : 'Offline';
+  const isExternal = project.type === 'external';
+  const typeIcon = isExternal ? '🔗' : '📦';
+  const statusClass = 'live';
+  const statusText = isExternal ? 'External Link' : 'Live';
+
+  let actionButton;
+  if (isExternal && project.externalUrl) {
+    actionButton = `<a href="${escapeHtml(project.externalUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Visit Site ↗</a>`;
+  } else if (project.publicHash) {
+    actionButton = `<a href="/p/${project.publicHash}" target="_blank" class="btn btn-primary">View Project ↗</a>`;
+  } else {
+    actionButton = `<span class="project-offline">No files uploaded yet</span>`;
+  }
 
   card.innerHTML = `
     <div class="card-header">
-      <h3>${escapeHtml(project.name)}</h3>
+      <h3>${typeIcon} ${escapeHtml(project.name)}</h3>
       <span class="status-badge ${statusClass}">
         <span class="status-dot"></span>
         ${statusText}
@@ -190,17 +254,7 @@ function createPublicProjectCard(id, project) {
     </div>
     <p class="card-description">${escapeHtml(project.description) || 'No description available'}</p>
     <div class="card-footer">
-      ${project.url && isRunning
-      ? `<a href="${project.url}" target="_blank" rel="noopener noreferrer" class="btn btn-view-project">
-             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-               <polyline points="15 3 21 3 21 9"></polyline>
-               <line x1="10" y1="14" x2="21" y2="3"></line>
-             </svg>
-             Open Project
-           </a>`
-      : `<span class="project-offline">🔒 Project is currently offline</span>`
-    }
+      ${actionButton}
     </div>
   `;
 
@@ -211,7 +265,14 @@ function createPublicProjectCard(id, project) {
 async function loadProjects() {
   try {
     const response = await fetch('/api/projects');
-    const projects = await response.json();
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+    const projects = result.data || {};
 
     projectsList.innerHTML = '';
     const projectArray = Object.entries(projects);
@@ -237,17 +298,37 @@ function createProjectCard(id, project) {
   const card = document.createElement('div');
   card.className = 'project-card admin-card';
 
-  const statusClass = project.containerStatus === 'running' ? 'running' : 'stopped';
-  const statusText = project.containerStatus === 'running' ? 'Running' : 'Stopped';
+  const isExternal = project.type === 'external';
+  const statusClass = isExternal ? 'external' : 'live';
+  const statusText = isExternal ? 'External' : 'Live';
+  const typeIcon = isExternal ? '🔗' : '📦';
 
-  const urlHtml = project.url
-    ? `<div class="info-row">
-         <span class="info-label">URL</span>
-         <span class="project-url"><a href="${project.url}" target="_blank" rel="noopener noreferrer">Open App ↗</a></span>
-       </div>`
-    : '';
+  let urlHtml = '';
+  if (isExternal && project.externalUrl) {
+    urlHtml = `
+      <div class="info-row">
+        <span class="info-label">URL</span>
+        <span class="project-url"><a href="${escapeHtml(project.externalUrl)}" target="_blank" rel="noopener noreferrer">Open ↗</a></span>
+      </div>`;
+  } else if (project.publicHash) {
+    urlHtml = `
+      <div class="info-row">
+        <span class="info-label">URL</span>
+        <span class="project-url"><a href="/p/${project.publicHash}" target="_blank">View ↗</a></span>
+      </div>`;
+  }
+
+  // Build actions based on project type
+  let actions = `<button class="btn btn-edit" onclick="openEditModal('${id}')">Edit</button>`;
+
+  if (!isExternal) {
+    actions += `<button class="btn btn-files" onclick="openFilesModal('${id}')">📁 Files</button>`;
+  }
+
+  actions += `<button class="btn btn-delete" onclick="deleteProject('${id}', '${escapeHtml(project.name)}')">Delete</button>`;
 
   card.innerHTML = `
+    <div class="card-type-badge ${isExternal ? 'external' : 'hosted'}">${typeIcon} ${isExternal ? 'External' : 'Hosted'}</div>
     <h3>${escapeHtml(project.name)}</h3>
     <p class="admin-description">${escapeHtml(project.description) || 'No description'}</p>
     <div class="project-info">
@@ -260,7 +341,7 @@ function createProjectCard(id, project) {
       </div>
       <div class="info-row">
         <span class="info-label">ID</span>
-        <span class="project-hash">${project.hash.substring(0, 8)}...</span>
+        <span class="project-hash">${(project.hash || id).substring(0, 8)}...</span>
       </div>
       ${urlHtml}
       <div class="info-row">
@@ -268,21 +349,15 @@ function createProjectCard(id, project) {
         <span>${new Date(project.createdAt).toLocaleDateString()}</span>
       </div>
     </div>
-    <div class="project-actions">
-      <button class="btn btn-edit" onclick="openEditModal('${id}', '${escapeHtml(project.name)}', '${escapeHtml(project.description || '')}')">Edit</button>
-      <button class="btn btn-upload" onclick="openUploadModal('${id}')">Upload</button>
-      ${project.containerStatus === 'running'
-      ? `<button class="btn btn-stop" onclick="stopProject('${id}')">Stop</button>`
-      : `<button class="btn btn-start" onclick="startProject('${id}')">Start</button>`
-    }
-      <button class="btn btn-delete" onclick="deleteProject('${id}', '${escapeHtml(project.name)}')">Delete</button>
+    <div class="card-actions">
+      ${actions}
     </div>
   `;
 
   return card;
 }
 
-// Project CRUD Operations
+// Project Actions
 async function handleCreateProject(e) {
   e.preventDefault();
 
@@ -296,25 +371,65 @@ async function handleCreateProject(e) {
       body: JSON.stringify(data)
     });
 
-    if (response.ok) {
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
       closeModals();
       newProjectForm.reset();
       loadProjects();
+      showToast('Project created successfully!', 'success');
     } else {
-      const error = await response.json();
-      alert(`Error: ${error.error}`);
+      showToast(result.message || 'Failed to create project', 'error');
     }
   } catch (error) {
-    alert('Failed to create project');
+    showToast('Failed to create project', 'error');
   }
 }
 
-function openEditModal(projectId, name, description) {
-  currentProjectId = projectId;
-  document.getElementById('edit-project-id').value = projectId;
-  document.getElementById('edit-project-name').value = name;
-  document.getElementById('edit-project-description').value = description;
-  showModal(editProjectModal);
+async function openEditModal(projectId) {
+  try {
+    const response = await fetch(`/api/projects/${projectId}`);
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+
+    if (!result.success) {
+      showToast('Failed to load project', 'error');
+      return;
+    }
+
+    const project = result.data;
+    currentProjectId = projectId;
+
+    document.getElementById('edit-project-id').value = projectId;
+    document.getElementById('edit-project-type').value = project.type || 'hosted';
+    document.getElementById('edit-project-name').value = project.name || '';
+    document.getElementById('edit-project-description').value = project.description || '';
+
+    const urlField = document.querySelector('.edit-external-url-field');
+    const urlInput = document.getElementById('edit-project-url');
+
+    if (project.type === 'external') {
+      urlField.classList.remove('hidden');
+      urlInput.value = project.externalUrl || '';
+    } else {
+      urlField.classList.add('hidden');
+      urlInput.value = '';
+    }
+
+    showModal(editProjectModal);
+  } catch (error) {
+    showToast('Failed to load project', 'error');
+  }
 }
 
 async function handleEditProject(e) {
@@ -323,30 +438,67 @@ async function handleEditProject(e) {
   const projectId = document.getElementById('edit-project-id').value;
   const name = document.getElementById('edit-project-name').value;
   const description = document.getElementById('edit-project-description').value;
+  const externalUrl = document.getElementById('edit-project-url').value;
 
   try {
     const response = await fetch(`/api/projects/${projectId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description })
+      body: JSON.stringify({ name, description, externalUrl })
     });
 
-    if (response.ok) {
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
       closeModals();
       loadProjects();
+      showToast('Project updated successfully!', 'success');
     } else {
-      const error = await response.json();
-      alert(`Error: ${error.error}`);
+      showToast(result.message || 'Failed to update project', 'error');
     }
   } catch (error) {
-    alert('Failed to update project');
+    showToast('Failed to update project', 'error');
   }
 }
 
+async function deleteProject(id, name) {
+  if (!confirm(`Are you sure you want to delete "${name}"?\n\nThis action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/projects/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      loadProjects();
+      showToast('Project deleted successfully!', 'success');
+    } else {
+      showToast(result.message || 'Failed to delete project', 'error');
+    }
+  } catch (error) {
+    showToast('Failed to delete project', 'error');
+  }
+}
+
+// File Upload
 function openUploadModal(projectId) {
   currentProjectId = projectId;
-  fileUpload.value = '';
   fileList.innerHTML = '';
+  fileUpload.value = '';
   showModal(uploadModal);
 }
 
@@ -354,24 +506,28 @@ function updateFileList() {
   const files = Array.from(fileUpload.files);
   fileList.innerHTML = '';
 
-  if (files.length > 0) {
-    files.forEach(file => {
-      const item = document.createElement('div');
-      item.className = 'file-list-item';
-      item.textContent = `📄 ${file.name} (${formatFileSize(file.size)})`;
-      fileList.appendChild(item);
-    });
+  if (files.length === 0) {
+    fileList.innerHTML = '<p class="no-files">No files selected</p>';
+    return;
   }
+
+  files.forEach(file => {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.innerHTML = `
+      <span class="file-name">📄 ${escapeHtml(file.name)}</span>
+      <span class="file-size">${formatFileSize(file.size)}</span>
+    `;
+    fileList.appendChild(fileItem);
+  });
 }
 
 async function handleUploadFiles(e) {
   e.preventDefault();
 
-  if (!currentProjectId) return;
-
   const files = fileUpload.files;
-  if (files.length === 0) {
-    alert('Please select files to upload');
+  if (!files || files.length === 0) {
+    showToast('Please select files to upload', 'warning');
     return;
   }
 
@@ -386,86 +542,80 @@ async function handleUploadFiles(e) {
       body: formData
     });
 
-    if (response.ok) {
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
       closeModals();
-      alert('Files uploaded successfully!');
+      showToast(`${result.data.filesUploaded} file(s) uploaded successfully!`, 'success');
       loadProjects();
     } else {
-      const error = await response.json();
-      alert(`Error: ${error.error}`);
+      showToast(result.message || 'Failed to upload files', 'error');
     }
   } catch (error) {
-    alert('Failed to upload files');
+    showToast('Failed to upload files', 'error');
   }
 }
 
-async function startProject(id) {
-  try {
-    const response = await fetch(`/api/projects/${id}/start`, {
-      method: 'POST'
-    });
-
-    if (response.ok) {
-      loadProjects();
-    } else {
-      const error = await response.json();
-      alert(`Error: ${error.error}`);
-    }
-  } catch (error) {
-    alert('Failed to start project');
-  }
-}
-
-async function stopProject(id) {
-  try {
-    const response = await fetch(`/api/projects/${id}/stop`, {
-      method: 'POST'
-    });
-
-    if (response.ok) {
-      loadProjects();
-    } else {
-      const error = await response.json();
-      alert(`Error: ${error.error}`);
-    }
-  } catch (error) {
-    alert('Failed to stop project');
-  }
-}
-
-async function deleteProject(id, name) {
-  if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`/api/projects/${id}`, {
-      method: 'DELETE'
-    });
-
-    if (response.ok) {
-      loadProjects();
-    } else {
-      const error = await response.json();
-      alert(`Error: ${error.error}`);
-    }
-  } catch (error) {
-    alert('Failed to delete project');
-  }
+// Session handling
+function handleSessionExpired() {
+  isAdmin = false;
+  showToast('Session expired. Please login again.', 'warning');
+  showPublicPage();
+  showModal(loginModal);
 }
 
 // Modal Functions
 function showModal(modal) {
   modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModals() {
-  loginModal.classList.add('hidden');
-  newProjectModal.classList.add('hidden');
-  editProjectModal.classList.add('hidden');
-  uploadModal.classList.add('hidden');
-  currentProjectId = null;
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.classList.add('hidden');
+  });
+  document.body.style.overflow = '';
   loginError.textContent = '';
+}
+
+// Toast Notifications
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container') || createToastContainer();
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${getToastIcon(type)}</span>
+    <span class="toast-message">${escapeHtml(message)}</span>
+  `;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+function createToastContainer() {
+  const container = document.createElement('div');
+  container.id = 'toast-container';
+  document.body.appendChild(container);
+  return container;
+}
+
+function getToastIcon(type) {
+  switch (type) {
+    case 'success': return '✅';
+    case 'error': return '❌';
+    case 'warning': return '⚠️';
+    default: return 'ℹ️';
+  }
 }
 
 // Utility Functions
@@ -479,7 +629,185 @@ function escapeHtml(text) {
 function formatFileSize(bytes) {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB'];
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
+
+// File Manager
+const filesModal = document.getElementById('files-modal');
+const filesList = document.getElementById('files-list');
+const filesEmpty = document.getElementById('files-empty');
+const filesCount = document.querySelector('.files-count');
+const addFilesBtn = document.getElementById('add-files-btn');
+const renameModal = document.getElementById('rename-modal');
+const renameForm = document.getElementById('rename-form');
+
+// Setup file manager events
+if (addFilesBtn) {
+  addFilesBtn.addEventListener('click', () => {
+    closeModals();
+    openUploadModal(currentProjectId);
+  });
+}
+
+if (renameForm) {
+  renameForm.addEventListener('submit', handleRenameFile);
+}
+
+function openFilesModal(projectId) {
+  currentProjectId = projectId;
+  showModal(filesModal);
+  loadProjectFiles(projectId);
+}
+
+async function loadProjectFiles(projectId) {
+  try {
+    const response = await fetch(`/api/projects/${projectId}/files`);
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+    const files = result.data || [];
+
+    filesList.innerHTML = '';
+
+    if (files.length === 0) {
+      filesEmpty.classList.remove('hidden');
+      filesList.classList.add('hidden');
+      filesCount.textContent = '0 files';
+    } else {
+      filesEmpty.classList.add('hidden');
+      filesList.classList.remove('hidden');
+      filesCount.textContent = `${files.length} file${files.length > 1 ? 's' : ''}`;
+
+      files.forEach(file => {
+        const fileItem = createFileItem(file);
+        filesList.appendChild(fileItem);
+      });
+    }
+  } catch (error) {
+    console.error('Failed to load files:', error);
+    showToast('Failed to load files', 'error');
+  }
+}
+
+function createFileItem(file) {
+  const item = document.createElement('div');
+  item.className = 'file-item-row';
+
+  const icon = getFileIcon(file.name);
+  const modified = new Date(file.modified).toLocaleString();
+
+  item.innerHTML = `
+    <div class="file-info">
+      <span class="file-icon">${icon}</span>
+      <span class="file-name-text">${escapeHtml(file.name)}</span>
+    </div>
+    <div class="file-meta">
+      <span class="file-size">${formatFileSize(file.size)}</span>
+    </div>
+    <div class="file-actions">
+      <button class="btn btn-sm btn-icon" onclick="openRenameModal('${escapeHtml(file.name)}')" title="Rename">✏️</button>
+      <button class="btn btn-sm btn-icon btn-danger" onclick="deleteFileConfirm('${escapeHtml(file.name)}')" title="Delete">🗑️</button>
+    </div>
+  `;
+
+  return item;
+}
+
+function getFileIcon(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  switch (ext) {
+    case 'html': return '📄';
+    case 'css': return '🎨';
+    case 'js': return '⚡';
+    case 'json': return '📋';
+    case 'svg': return '🖼️';
+    case 'png': case 'jpg': case 'jpeg': case 'gif': return '🖼️';
+    default: return '📄';
+  }
+}
+
+function openRenameModal(filename) {
+  document.getElementById('rename-old-name').value = filename;
+  document.getElementById('rename-new-name').value = filename;
+  showModal(renameModal);
+  document.getElementById('rename-new-name').select();
+}
+
+async function handleRenameFile(e) {
+  e.preventDefault();
+
+  const oldName = document.getElementById('rename-old-name').value;
+  const newName = document.getElementById('rename-new-name').value.trim();
+
+  if (!newName) {
+    showToast('Please enter a filename', 'warning');
+    return;
+  }
+
+  if (oldName === newName) {
+    closeModals();
+    showModal(filesModal);
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/projects/${currentProjectId}/files/${encodeURIComponent(oldName)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newName })
+    });
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      closeModals();
+      showModal(filesModal);
+      loadProjectFiles(currentProjectId);
+      showToast('File renamed successfully', 'success');
+    } else {
+      showToast(result.message || 'Failed to rename file', 'error');
+    }
+  } catch (error) {
+    showToast('Failed to rename file', 'error');
+  }
+}
+
+async function deleteFileConfirm(filename) {
+  if (!confirm(`Are you sure you want to delete "${filename}"?\n\nThis action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/projects/${currentProjectId}/files/${encodeURIComponent(filename)}`, {
+      method: 'DELETE'
+    });
+
+    if (response.status === 401) {
+      handleSessionExpired();
+      return;
+    }
+
+    const result = await response.json();
+
+    if (result.success) {
+      loadProjectFiles(currentProjectId);
+      showToast('File deleted successfully', 'success');
+    } else {
+      showToast(result.message || 'Failed to delete file', 'error');
+    }
+  } catch (error) {
+    showToast('Failed to delete file', 'error');
+  }
+}
+
