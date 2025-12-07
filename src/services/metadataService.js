@@ -19,15 +19,8 @@ class MetadataService {
      * Ensure required directories exist
      */
     _ensureDirectories() {
-        // Ensure projects directory exists
         if (!fsSync.existsSync(this.projectsPath)) {
             fsSync.mkdirSync(this.projectsPath, { recursive: true });
-        }
-
-        // Ensure metadata parent directory exists (for /app/data/metadata.json)
-        const metadataDir = path.dirname(this.metadataPath);
-        if (metadataDir !== '.' && !fsSync.existsSync(metadataDir)) {
-            fsSync.mkdirSync(metadataDir, { recursive: true });
         }
     }
 
