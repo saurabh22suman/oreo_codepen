@@ -25,8 +25,7 @@ services:
     networks:
       - dokploy-network
     
-    ports:
-      - "${PORT:-3000}:3000"
+    # Note: No ports exposed - Dokploy handles reverse proxy routing
     
     environment:
       NODE_ENV: production
