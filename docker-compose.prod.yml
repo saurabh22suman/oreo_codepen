@@ -30,14 +30,11 @@ services:
     environment:
       NODE_ENV: production
       PORT: ${PORT:-3000}
-
-      # App config - Use RELATIVE path (code does path.join(cwd, METADATA_PATH))
       METADATA_PATH: data/metadata.json
       APP_USERNAME: ${APP_USERNAME:-admin}
       APP_PASSWORD: ${APP_PASSWORD}
       SESSION_SECRET: ${SESSION_SECRET}
 
-    # Mount volumes to DIRECTORIES
     volumes:
       - oreo-projects:/app/projects
       - oreo-metadata:/app/data
