@@ -11,6 +11,8 @@
 #   - Secure configuration
 #   - Persistent volumes
 
+version: "3.9"
+
 services:
   oreo-app:
     build:
@@ -21,70 +23,46 @@ services:
     image: oreo-codepen:prod
     container_name: oreo-codepen-prod
     restart: unless-stopped
-    
+
     networks:
       - dokploy-network
-    
-    # Note: No ports exposed - Dokploy handles reverse proxy routing
-    
+
     environment:
       NODE_ENV: production
       PORT: ${PORT:-3000}
-      
-      # Data paths (use persistent volume)
-      METADATA_PATH: /app/data/metadata.json
-      
-      # Authentication (set in Dokploy env vars)
+
+      # App config
+      METADATA_PATH: /app/metadata.json
       APP_USERNAME: ${APP_USERNAME:-admin}
       APP_PASSWORD: ${APP_PASSWORD}
       SESSION_SECRET: ${SESSION_SECRET}
-    
-    # Persistent volumes for data
+
+    # Writable paths
     volumes:
       - oreo-projects:/app/projects
-      - oreo-data:/app/data
-    
-    # Resource limits for stability
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 128M
-    
-    # Health check for Dokploy
+      - oreo-metadata:/app/metadata.json
+
+    # Do NOT use read_only here — your app needs root-level writes
+    read_only: false
+
+    # Healthcheck (simpler & reliable)
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(()=>process.exit(1));"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
-    
-    # Logging configuration
+
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    
-    # Security options
-    security_opt:
-      - no-new-privileges:true
-    
-    # Read-only root filesystem (volumes are writable)
-    read_only: false
-    tmpfs:
-      - /tmp
 
-# External network for Dokploy
 networks:
   dokploy-network:
     external: true
 
-# Named volumes for data persistence
 volumes:
   oreo-projects:
-  oreo-data:
-
+  oreo-metadata:
