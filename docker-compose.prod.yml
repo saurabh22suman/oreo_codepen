@@ -29,7 +29,7 @@ services:
 
     environment:
       NODE_ENV: production
-      PORT: ${PORT:-8080}
+      PORT: ${PORT:-3000}
 
       # App config
       METADATA_PATH: /app/metadata.json
