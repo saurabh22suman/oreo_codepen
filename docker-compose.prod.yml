@@ -31,16 +31,16 @@ services:
       NODE_ENV: production
       PORT: ${PORT:-3000}
 
-      # App config
-      METADATA_PATH: /app/metadata.json
+      # App config - point to file INSIDE the mounted directory
+      METADATA_PATH: /app/data/metadata.json
       APP_USERNAME: ${APP_USERNAME:-admin}
       APP_PASSWORD: ${APP_PASSWORD}
       SESSION_SECRET: ${SESSION_SECRET}
 
-    # Writable paths
+    # Mount volumes to DIRECTORIES, not files
     volumes:
       - oreo-projects:/app/projects
-      - oreo-metadata:/app/metadata.json
+      - oreo-metadata:/app/data
 
     # Do NOT use read_only here — your app needs root-level writes
     read_only: false
