@@ -1,14 +1,17 @@
 # ==================================
-# Oreo CodePen - Production Configuration
+# Oreo CodePen - Dokploy Production Configuration
 # ==================================
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+# Usage: Deploy via Dokploy or run manually:
+#   docker-compose -f docker-compose.prod.yml up --build -d
 #
 # Features:
-#   - Optimized production build
-#   - Non-root user execution
-#   - Health checks enabled
-#   - Resource limits
-#   - Logging configuration
+#   - Dokploy external network support
+#   - Health checks for reliability
+#   - Resource limits for stability
+#   - Secure configuration
+#   - Persistent volumes
+
+version: "3.9"
 
 services:
   oreo-app:
@@ -19,12 +22,27 @@ services:
     
     image: oreo-codepen:prod
     container_name: oreo-codepen-prod
+    restart: unless-stopped
+    
+    networks:
+      - dokploy-network
     
     ports:
       - "${PORT:-3000}:3000"
     
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+      
+      # Authentication (set in Dokploy env vars)
+      APP_USERNAME: ${APP_USERNAME:-admin}
+      APP_PASSWORD: ${APP_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
+    
+    # Persistent volumes for data
+    volumes:
+      - oreo-projects:/app/projects
+      - oreo-metadata:/app/metadata.json
     
     # Resource limits for stability
     deploy:
@@ -35,6 +53,14 @@ services:
         reservations:
           cpus: "0.25"
           memory: 128M
+    
+    # Health check for Dokploy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     
     # Logging configuration
     logging:
@@ -47,19 +73,17 @@ services:
     security_opt:
       - no-new-privileges:true
     
-    # Read-only root filesystem (projects dir is mounted as writable)
+    # Read-only root filesystem (volumes are writable)
     read_only: true
     tmpfs:
       - /tmp
-    
-    # Ensure volumes are properly mounted for production
-    volumes:
-      - oreo-projects:/app/projects
-      - oreo-metadata:/app/metadata
+
+# External network for Dokploy
+networks:
+  dokploy-network:
+    external: true
 
 # Named volumes for data persistence
 volumes:
   oreo-projects:
-    driver: local
   oreo-metadata:
-    driver: local
