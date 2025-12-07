@@ -45,7 +45,7 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   const allowedExtensions = ['.html', '.css', '.js', '.txt', '.json'];
   const ext = path.extname(file.originalname).toLowerCase();
-  
+
   if (allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
@@ -53,7 +53,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage,
   fileFilter,
   limits: {
@@ -120,7 +120,7 @@ app.get('/api/auth/check', (req, res) => {
   res.json({ authenticated: req.session && req.session.authenticated });
 });
 
-// Get all projects
+// Get all projects (admin - with full details)
 app.get('/api/projects', requireAuth, async (req, res) => {
   try {
     const metadata = await loadMetadata();
@@ -130,10 +130,31 @@ app.get('/api/projects', requireAuth, async (req, res) => {
   }
 });
 
+// Get all projects (public - limited details)
+app.get('/api/public/projects', async (req, res) => {
+  try {
+    const metadata = await loadMetadata();
+    const publicProjects = {};
+
+    for (const [id, project] of Object.entries(metadata.projects)) {
+      publicProjects[id] = {
+        name: project.name,
+        description: project.description || '',
+        url: project.url || null,
+        containerStatus: project.containerStatus
+      };
+    }
+
+    res.json(publicProjects);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Create new project
 app.post('/api/projects', requireAuth, async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body;
     if (!name) {
       return res.status(400).json({ error: 'Project name is required' });
     }
@@ -180,6 +201,7 @@ h1 {
     const metadata = await loadMetadata();
     metadata.projects[projectId] = {
       name,
+      description: description || '',
       hash: projectId,
       createdAt: new Date().toISOString(),
       containerStatus: 'stopped'
@@ -187,6 +209,27 @@ h1 {
     await saveMetadata(metadata);
 
     res.json({ projectId, ...metadata.projects[projectId] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update project (edit name/description)
+app.put('/api/projects/:id', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    const metadata = await loadMetadata();
+
+    if (!metadata.projects[id]) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (name) metadata.projects[id].name = name;
+    if (description !== undefined) metadata.projects[id].description = description;
+
+    await saveMetadata(metadata);
+    res.json(metadata.projects[id]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

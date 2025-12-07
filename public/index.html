@@ -1,47 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oreo CodePen - Park UI Pages & Mock Designs</title>
+  <meta name="description"
+    content="Showcase your UI masterpieces. A platform to park and deploy UI pages and mock designs in isolated Docker containers.">
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <!-- Login Page -->
-  <div id="login-page" class="page">
-    <div class="container">
-      <div class="login-box">
+  <!-- Public Landing Page -->
+  <div id="public-page" class="page active">
+    <nav class="navbar">
+      <div class="container">
         <h1>🍪 Oreo CodePen</h1>
-        <p class="subtitle">Park UI pages and mock designs</p>
-        <form id="login-form">
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required autocomplete="username">
-          </div>
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required autocomplete="current-password">
-          </div>
-          <button type="submit" class="btn btn-primary">Login</button>
-          <div id="login-error" class="error-message"></div>
-        </form>
+        <button id="admin-login-btn" class="btn btn-admin-login">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Admin Login
+        </button>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="hero-section">
+        <h2 class="hero-title">UI Showcase Gallery</h2>
+        <p class="hero-subtitle">Explore our collection of UI masterpieces deployed in isolated containers</p>
+      </div>
+
+      <div id="public-projects-list" class="projects-grid public-grid">
+        <!-- Public projects will be loaded here -->
+      </div>
+
+      <div id="public-empty-state" class="empty-state hidden">
+        <div class="empty-icon">📦</div>
+        <h3>No Projects Yet</h3>
+        <p>Check back soon for amazing UI designs!</p>
       </div>
     </div>
   </div>
 
-  <!-- Dashboard Page -->
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal hidden">
+    <div class="modal-content glass-panel login-modal-content">
+      <div class="modal-header">
+        <h3>🔐 Admin Login</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username"
+            placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password"
+            placeholder="••••••••">
+        </div>
+        <div id="login-error" class="error-message"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard Page -->
   <div id="dashboard-page" class="page hidden">
     <nav class="navbar">
       <div class="container">
         <h1>🍪 Oreo CodePen</h1>
-        <button id="logout-btn" class="btn btn-secondary">Logout</button>
+        <div class="nav-actions">
+          <button id="view-public-btn" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            View Public Site
+          </button>
+          <button id="logout-btn" class="btn btn-logout">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Logout
+          </button>
+        </div>
       </div>
     </nav>
 
     <div class="container">
       <div class="dashboard-header">
-        <h2>Your Projects</h2>
-        <button id="new-project-btn" class="btn btn-primary">+ New Project</button>
+        <div class="dashboard-title-section">
+          <h2>Admin Dashboard</h2>
+          <span class="admin-badge">🛡️ Admin Mode</span>
+        </div>
+        <button id="new-project-btn" class="btn btn-primary">
+          <span>+</span> New Project
+        </button>
       </div>
 
       <div id="projects-list" class="projects-grid">
@@ -49,14 +121,16 @@
       </div>
 
       <div id="empty-state" class="empty-state hidden">
-        <p>No projects yet. Create your first project to get started!</p>
+        <div class="empty-icon">🚀</div>
+        <h3>No Projects Yet</h3>
+        <p>Create your first project to get started!</p>
       </div>
     </div>
   </div>
 
   <!-- New Project Modal -->
   <div id="new-project-modal" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content glass-panel">
       <div class="modal-header">
         <h3>Create New Project</h3>
         <button class="close-modal">&times;</button>
@@ -64,7 +138,12 @@
       <form id="new-project-form">
         <div class="form-group">
           <label for="project-name">Project Name</label>
-          <input type="text" id="project-name" name="name" required>
+          <input type="text" id="project-name" name="name" required placeholder="e.g. My Awesome Landing Page">
+        </div>
+        <div class="form-group">
+          <label for="project-description">Description</label>
+          <textarea id="project-description" name="description" rows="3"
+            placeholder="A brief description of your project..."></textarea>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
@@ -74,23 +153,49 @@
     </div>
   </div>
 
+  <!-- Edit Project Modal -->
+  <div id="edit-project-modal" class="modal hidden">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h3>Edit Project</h3>
+        <button class="close-modal">&times;</button>
+      </div>
+      <form id="edit-project-form">
+        <input type="hidden" id="edit-project-id">
+        <div class="form-group">
+          <label for="edit-project-name">Project Name</label>
+          <input type="text" id="edit-project-name" name="name" required placeholder="e.g. My Awesome Landing Page">
+        </div>
+        <div class="form-group">
+          <label for="edit-project-description">Description</label>
+          <textarea id="edit-project-description" name="description" rows="3"
+            placeholder="A brief description of your project..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Upload Files Modal -->
   <div id="upload-modal" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content glass-panel">
       <div class="modal-header">
         <h3>Upload Files</h3>
         <button class="close-modal">&times;</button>
       </div>
       <form id="upload-form">
         <div class="form-group">
-          <label for="file-upload">Select HTML, CSS, JS files</label>
-          <input type="file" id="file-upload" multiple accept=".html,.css,.js">
-          <p class="help-text">You can select multiple files</p>
+          <label for="file-upload">Select Files</label>
+          <input type="file" id="file-upload" multiple accept=".html,.css,.js,.json,.txt">
+          <p class="help-text">Supported: .html, .css, .js, .json, .txt</p>
         </div>
         <div id="file-list" class="file-list"></div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary cancel-modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Upload</button>
+          <button type="submit" class="btn btn-primary">Upload Files</button>
         </div>
       </form>
     </div>
@@ -98,4 +203,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>

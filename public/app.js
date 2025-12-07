@@ -1,72 +1,94 @@
 // State
 let currentProjectId = null;
+let isAdmin = false;
 
-// Elements
-const loginPage = document.getElementById('login-page');
-const dashboardPage = document.getElementById('dashboard-page');
+// Elements - Public Page
+const publicPage = document.getElementById('public-page');
+const adminLoginBtn = document.getElementById('admin-login-btn');
+const publicProjectsList = document.getElementById('public-projects-list');
+const publicEmptyState = document.getElementById('public-empty-state');
+
+// Elements - Login Modal
+const loginModal = document.getElementById('login-modal');
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
+
+// Elements - Dashboard
+const dashboardPage = document.getElementById('dashboard-page');
 const logoutBtn = document.getElementById('logout-btn');
+const viewPublicBtn = document.getElementById('view-public-btn');
 const newProjectBtn = document.getElementById('new-project-btn');
 const projectsList = document.getElementById('projects-list');
 const emptyState = document.getElementById('empty-state');
 
 // Modals
 const newProjectModal = document.getElementById('new-project-modal');
+const editProjectModal = document.getElementById('edit-project-modal');
 const uploadModal = document.getElementById('upload-modal');
 const newProjectForm = document.getElementById('new-project-form');
+const editProjectForm = document.getElementById('edit-project-form');
 const uploadForm = document.getElementById('upload-form');
 const fileUpload = document.getElementById('file-upload');
 const fileList = document.getElementById('file-list');
 
 // Initialize
-checkAuth();
+init();
 
-// Event Listeners
-loginForm.addEventListener('submit', handleLogin);
-logoutBtn.addEventListener('click', handleLogout);
-newProjectBtn.addEventListener('click', () => showModal(newProjectModal));
-newProjectForm.addEventListener('submit', handleCreateProject);
-uploadForm.addEventListener('submit', handleUploadFiles);
-fileUpload.addEventListener('change', updateFileList);
+async function init() {
+  // Load public projects first
+  loadPublicProjects();
 
-// Close modals
-document.querySelectorAll('.close-modal, .cancel-modal').forEach(btn => {
-  btn.addEventListener('click', closeModals);
-});
-
-// Close modal on outside click
-window.addEventListener('click', (e) => {
-  if (e.target.classList.contains('modal')) {
-    closeModals();
+  // Check if user is already authenticated
+  const authStatus = await checkAuth();
+  if (authStatus) {
+    isAdmin = true;
+    showDashboard();
+    loadProjects();
   }
-});
 
-// Functions
+  setupEventListeners();
+}
+
+function setupEventListeners() {
+  // Public page
+  adminLoginBtn.addEventListener('click', () => showModal(loginModal));
+
+  // Login
+  loginForm.addEventListener('submit', handleLogin);
+
+  // Dashboard
+  logoutBtn.addEventListener('click', handleLogout);
+  viewPublicBtn.addEventListener('click', showPublicPage);
+  newProjectBtn.addEventListener('click', () => showModal(newProjectModal));
+
+  // Forms
+  newProjectForm.addEventListener('submit', handleCreateProject);
+  editProjectForm.addEventListener('submit', handleEditProject);
+  uploadForm.addEventListener('submit', handleUploadFiles);
+  fileUpload.addEventListener('change', updateFileList);
+
+  // Close modals
+  document.querySelectorAll('.close-modal, .cancel-modal').forEach(btn => {
+    btn.addEventListener('click', closeModals);
+  });
+
+  // Close modal on outside click
+  window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal')) {
+      closeModals();
+    }
+  });
+}
+
+// Auth Functions
 async function checkAuth() {
   try {
     const response = await fetch('/api/auth/check');
     const data = await response.json();
-    if (data.authenticated) {
-      showDashboard();
-      loadProjects();
-    } else {
-      showLogin();
-    }
+    return data.authenticated;
   } catch (error) {
-    showLogin();
+    return false;
   }
-}
-
-function showLogin() {
-  loginPage.classList.add('active');
-  dashboardPage.classList.remove('active');
-}
-
-function showDashboard() {
-  loginPage.classList.remove('active');
-  dashboardPage.classList.remove('hidden');
-  dashboardPage.classList.add('active');
 }
 
 async function handleLogin(e) {
@@ -84,6 +106,8 @@ async function handleLogin(e) {
     });
 
     if (response.ok) {
+      isAdmin = true;
+      closeModals();
       showDashboard();
       loadProjects();
       loginForm.reset();
@@ -98,19 +122,98 @@ async function handleLogin(e) {
 async function handleLogout() {
   try {
     await fetch('/api/logout', { method: 'POST' });
-    showLogin();
+    isAdmin = false;
+    showPublicPage();
+    loadPublicProjects();
   } catch (error) {
     console.error('Logout failed:', error);
   }
 }
 
+// Page Navigation
+function showPublicPage() {
+  publicPage.classList.add('active');
+  publicPage.classList.remove('hidden');
+  dashboardPage.classList.remove('active');
+  dashboardPage.classList.add('hidden');
+  loadPublicProjects();
+}
+
+function showDashboard() {
+  dashboardPage.classList.add('active');
+  dashboardPage.classList.remove('hidden');
+  publicPage.classList.remove('active');
+  publicPage.classList.add('hidden');
+}
+
+// Public Projects
+async function loadPublicProjects() {
+  try {
+    const response = await fetch('/api/public/projects');
+    const projects = await response.json();
+
+    publicProjectsList.innerHTML = '';
+    const projectArray = Object.entries(projects);
+
+    if (projectArray.length === 0) {
+      publicEmptyState.classList.remove('hidden');
+      publicProjectsList.classList.add('hidden');
+    } else {
+      publicEmptyState.classList.add('hidden');
+      publicProjectsList.classList.remove('hidden');
+
+      projectArray.forEach(([id, project]) => {
+        const card = createPublicProjectCard(id, project);
+        publicProjectsList.appendChild(card);
+      });
+    }
+  } catch (error) {
+    console.error('Failed to load public projects:', error);
+  }
+}
+
+function createPublicProjectCard(id, project) {
+  const card = document.createElement('div');
+  card.className = 'project-card public-card';
+
+  const isRunning = project.containerStatus === 'running';
+  const statusClass = isRunning ? 'running' : 'stopped';
+  const statusText = isRunning ? 'Live' : 'Offline';
+
+  card.innerHTML = `
+    <div class="card-header">
+      <h3>${escapeHtml(project.name)}</h3>
+      <span class="status-badge ${statusClass}">
+        <span class="status-dot"></span>
+        ${statusText}
+      </span>
+    </div>
+    <p class="card-description">${escapeHtml(project.description) || 'No description available'}</p>
+    <div class="card-footer">
+      ${project.url && isRunning
+      ? `<a href="${project.url}" target="_blank" rel="noopener noreferrer" class="btn btn-view-project">
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+               <polyline points="15 3 21 3 21 9"></polyline>
+               <line x1="10" y1="14" x2="21" y2="3"></line>
+             </svg>
+             Open Project
+           </a>`
+      : `<span class="project-offline">🔒 Project is currently offline</span>`
+    }
+    </div>
+  `;
+
+  return card;
+}
+
+// Admin Projects
 async function loadProjects() {
   try {
     const response = await fetch('/api/projects');
     const projects = await response.json();
 
     projectsList.innerHTML = '';
-
     const projectArray = Object.entries(projects);
 
     if (projectArray.length === 0) {
@@ -132,36 +235,54 @@ async function loadProjects() {
 
 function createProjectCard(id, project) {
   const card = document.createElement('div');
-  card.className = 'project-card';
+  card.className = 'project-card admin-card';
 
   const statusClass = project.containerStatus === 'running' ? 'running' : 'stopped';
   const statusText = project.containerStatus === 'running' ? 'Running' : 'Stopped';
 
-  const urlHtml = project.url 
-    ? `<div><strong>URL:</strong> <span class="project-url"><a href="${project.url}" target="_blank">${project.url}</a></span></div>`
+  const urlHtml = project.url
+    ? `<div class="info-row">
+         <span class="info-label">URL</span>
+         <span class="project-url"><a href="${project.url}" target="_blank" rel="noopener noreferrer">Open App ↗</a></span>
+       </div>`
     : '';
 
   card.innerHTML = `
     <h3>${escapeHtml(project.name)}</h3>
+    <p class="admin-description">${escapeHtml(project.description) || 'No description'}</p>
     <div class="project-info">
-      <div><strong>Hash:</strong> <span class="project-hash">${project.hash}</span></div>
-      <div><strong>Status:</strong> <span class="project-status ${statusClass}">${statusText}</span></div>
+      <div class="info-row">
+        <span class="info-label">Status</span>
+        <span class="status-badge ${statusClass}">
+          <span class="status-dot"></span>
+          ${statusText}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">ID</span>
+        <span class="project-hash">${project.hash.substring(0, 8)}...</span>
+      </div>
       ${urlHtml}
-      <div><strong>Created:</strong> ${new Date(project.createdAt).toLocaleString()}</div>
+      <div class="info-row">
+        <span class="info-label">Created</span>
+        <span>${new Date(project.createdAt).toLocaleDateString()}</span>
+      </div>
     </div>
     <div class="project-actions">
-      <button class="btn btn-warning" onclick="openUploadModal('${id}')">Upload</button>
+      <button class="btn btn-edit" onclick="openEditModal('${id}', '${escapeHtml(project.name)}', '${escapeHtml(project.description || '')}')">Edit</button>
+      <button class="btn btn-upload" onclick="openUploadModal('${id}')">Upload</button>
       ${project.containerStatus === 'running'
-        ? `<button class="btn btn-secondary" onclick="stopProject('${id}')">Stop</button>`
-        : `<button class="btn btn-success" onclick="startProject('${id}')">Start</button>`
-      }
-      <button class="btn btn-danger" onclick="deleteProject('${id}', '${escapeHtml(project.name)}')">Delete</button>
+      ? `<button class="btn btn-stop" onclick="stopProject('${id}')">Stop</button>`
+      : `<button class="btn btn-start" onclick="startProject('${id}')">Start</button>`
+    }
+      <button class="btn btn-delete" onclick="deleteProject('${id}', '${escapeHtml(project.name)}')">Delete</button>
     </div>
   `;
 
   return card;
 }
 
+// Project CRUD Operations
 async function handleCreateProject(e) {
   e.preventDefault();
 
@@ -185,6 +306,40 @@ async function handleCreateProject(e) {
     }
   } catch (error) {
     alert('Failed to create project');
+  }
+}
+
+function openEditModal(projectId, name, description) {
+  currentProjectId = projectId;
+  document.getElementById('edit-project-id').value = projectId;
+  document.getElementById('edit-project-name').value = name;
+  document.getElementById('edit-project-description').value = description;
+  showModal(editProjectModal);
+}
+
+async function handleEditProject(e) {
+  e.preventDefault();
+
+  const projectId = document.getElementById('edit-project-id').value;
+  const name = document.getElementById('edit-project-name').value;
+  const description = document.getElementById('edit-project-description').value;
+
+  try {
+    const response = await fetch(`/api/projects/${projectId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, description })
+    });
+
+    if (response.ok) {
+      closeModals();
+      loadProjects();
+    } else {
+      const error = await response.json();
+      alert(`Error: ${error.error}`);
+    }
+  } catch (error) {
+    alert('Failed to update project');
   }
 }
 
@@ -299,17 +454,23 @@ async function deleteProject(id, name) {
   }
 }
 
+// Modal Functions
 function showModal(modal) {
   modal.classList.remove('hidden');
 }
 
 function closeModals() {
+  loginModal.classList.add('hidden');
   newProjectModal.classList.add('hidden');
+  editProjectModal.classList.add('hidden');
   uploadModal.classList.add('hidden');
   currentProjectId = null;
+  loginError.textContent = '';
 }
 
+// Utility Functions
 function escapeHtml(text) {
+  if (!text) return '';
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;

@@ -1,0 +1,32 @@
+# ==================================
+# Oreo CodePen - Base Docker Compose
+# ==================================
+# This is the base configuration. Use with:
+#   Development: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+version: "3.8"
+
+services:
+  oreo-app:
+    container_name: oreo-codepen
+    restart: unless-stopped
+    
+    # Mount Docker socket to allow container management
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./projects:/app/projects
+      - ./metadata.json:/app/metadata.json
+    
+    # Environment variables from .env file
+    env_file:
+      - .env
+    
+    # Network configuration
+    networks:
+      - oreo-network
+
+networks:
+  oreo-network:
+    driver: bridge
+    name: oreo-codepen-network
