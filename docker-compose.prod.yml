@@ -11,8 +11,6 @@
 #   - Secure configuration
 #   - Persistent volumes
 
-version: "3.9"
-
 services:
   oreo-app:
     build:
