@@ -228,15 +228,17 @@ async function loadPublicProjects() {
 
 function createPublicProjectCard(id, project) {
   const card = document.createElement('div');
-  card.className = 'project-card public-card';
+  const isVisible = project.visible !== false; // Default to true
+  card.className = `project-card public-card${isVisible ? '' : ' disabled'}`;
 
   const isExternal = project.type === 'external';
   const typeIcon = isExternal ? '🔗' : '📦';
-  const statusClass = 'live';
-  const statusText = isExternal ? 'External Link' : 'Live';
 
   let actionButton;
-  if (isExternal && project.externalUrl) {
+  if (!isVisible) {
+    // Project is hidden - show "Currently Hidden" badge
+    actionButton = `<span class="coming-soon-badge">🔒 Currently Hidden</span>`;
+  } else if (isExternal && project.externalUrl) {
     actionButton = `<a href="${escapeHtml(project.externalUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Visit Site ↗</a>`;
   } else if (project.publicHash) {
     actionButton = `<a href="/p/${project.publicHash}" target="_blank" class="btn btn-primary">View Project ↗</a>`;
@@ -245,6 +247,7 @@ function createPublicProjectCard(id, project) {
   }
 
   card.innerHTML = `
+    ${!isVisible ? '<div class="hidden-overlay"></div>' : ''}
     <div class="card-header">
       <h3>${typeIcon} ${escapeHtml(project.name)}</h3>
     </div>
@@ -425,6 +428,12 @@ async function openEditModal(projectId) {
     document.getElementById('edit-project-name').value = project.name || '';
     document.getElementById('edit-project-description').value = project.description || '';
 
+    // Set visibility checkbox (default to true for backward compatibility)
+    const visibilityCheckbox = document.getElementById('edit-project-visible');
+    if (visibilityCheckbox) {
+      visibilityCheckbox.checked = project.visible !== false;
+    }
+
     const urlField = document.querySelector('.edit-external-url-field');
     const urlInput = document.getElementById('edit-project-url');
 
@@ -449,12 +458,14 @@ async function handleEditProject(e) {
   const name = document.getElementById('edit-project-name').value;
   const description = document.getElementById('edit-project-description').value;
   const externalUrl = document.getElementById('edit-project-url').value;
+  const visibilityCheckbox = document.getElementById('edit-project-visible');
+  const visible = visibilityCheckbox ? visibilityCheckbox.checked : true;
 
   try {
     const response = await fetch(`/api/projects/${projectId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description, externalUrl })
+      body: JSON.stringify({ name, description, externalUrl, visible })
     });
 
     if (response.status === 401) {

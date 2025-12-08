@@ -81,12 +81,13 @@ class ProjectController {
     async updateProject(req, res) {
         try {
             const { id } = req.params;
-            const { name, description, externalUrl } = req.body;
+            const { name, description, externalUrl, visible } = req.body;
 
             const project = await projectService.updateProject(id, {
                 name: name ? Validator.sanitizeText(name) : undefined,
                 description: description !== undefined ? Validator.sanitizeText(description) : undefined,
                 externalUrl,
+                visible,
             });
 
             return ResponseHelper.success(res, project, 'Project updated successfully');

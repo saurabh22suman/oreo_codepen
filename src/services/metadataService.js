@@ -154,6 +154,7 @@ class MetadataService {
                 externalUrl: project.type === 'external' ? project.externalUrl : null,
                 publicHash: project.publicHash || null,
                 url: project.url || null,
+                visible: project.visible !== false, // Default to true for backward compatibility
             };
         }
 

@@ -90,6 +90,7 @@ class ProjectService {
             type: projectData.type || 'hosted',
             externalUrl: projectData.type === 'external' ? projectData.externalUrl : null,
             publicHash: projectData.type !== 'external' ? publicHash : null,
+            visible: true, // New projects are visible by default
         });
 
         return { projectId, ...project };
@@ -117,6 +118,10 @@ class ProjectService {
 
         if (updates.externalUrl !== undefined && project.type === 'external') {
             updateData.externalUrl = updates.externalUrl;
+        }
+
+        if (updates.visible !== undefined) {
+            updateData.visible = updates.visible;
         }
 
         return await metadataService.updateProject(projectId, updateData);
